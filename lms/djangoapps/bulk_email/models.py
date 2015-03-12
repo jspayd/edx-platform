@@ -17,6 +17,8 @@ from student.roles import CourseStaffRole, CourseInstructorRole
 
 from openedx.core.djangoapps.xmodule_django.models import CourseKeyField
 
+from lms.djangoapps.instructor_email_widget.models import GroupedQuery
+
 from util.keyword_substitution import substitute_keywords_with_data
 from util.query import use_read_replica_if_available
 
@@ -45,10 +47,12 @@ SEND_TO_MYSELF = 'myself'
 SEND_TO_STAFF = 'staff'
 SEND_TO_LEARNERS = 'learners'
 SEND_TO_COHORT = 'cohort'
+SEND_TO_QUERY = 'query'
 EMAIL_TARGET_CHOICES = zip(
     [SEND_TO_MYSELF, SEND_TO_STAFF, SEND_TO_LEARNERS, SEND_TO_COHORT],
     ['Myself', 'Staff and instructors', 'All students', 'Specific cohort']
 )
+EMAIL_TARGET_CHOICES.append((SEND_TO_QUERY, "QUERY"))
 EMAIL_TARGETS = {target[0] for target in EMAIL_TARGET_CHOICES}
 
 
@@ -192,6 +196,18 @@ class CourseEmail(Email):
             # split target, to handle cohort:cohort_name
             target_split = target.split(':', 1)
             # Ensure our desired target exists
+            if target_split[0].isdigit():
+                if not GroupedQuery.objects.filter(id=int(target_split[0])).exists():
+                    message = "Course email for '{course}' being sent to query id that does not exist: {query_id}, subject '{subject}'".format(
+                        course=course_id,
+                        query_id=to_option,
+                        subject=subject,
+                    )
+                    raise ValueError(message)
+                else:
+                    new_target, _ = Target.objects.get_or_create(target_type=target_split[0])
+                    new_targets.append(new_target)
+                continue
             if target_split[0] not in EMAIL_TARGETS:
                 fmt = 'Course email being sent to unrecognized target: "{target}" for "{course}", subject "{subject}"'
                 msg = fmt.format(target=target, course=course_id, subject=subject)

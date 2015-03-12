@@ -29,7 +29,35 @@ from openedx.core.djangolib.markup import HTML
                     <label for="target_learners">${_("All Learners")}</label>
                 </li>
             </ul>
+            %if len(section_data['query_options']) > 0:
+            <ul role="group" class="email-targets-secondary">
+                % for query_option in section_data['query_options']:
+                    <li>
+                        <input type="checkbox" name="send_to" value="${query_option[0]}" id="target_${query_option[0]}">
+                        <label for="target_${query_option[0]}">${_(query_option[1])}</label>
+                    </li>
+                % endfor
+            </ul>
+            %endif
             %if len(section_data['cohorts']) > 0:
+            <ul role="group" class="email-targets-secondary">
+                %for cohort in section_data['cohorts']:
+                <li>
+                    <input type="checkbox" name="send_to" value="cohort:${cohort.name}" id="target_cohort_${cohort.id}">
+                    <label for="target_cohort_${cohort.id}">
+                        ${_("Cohort: ") + cohort.name}
+                        %if cohort.name == section_data['default_cohort_name']:
+                        <br/>
+                        <div class="subheading">
+                            ${_("(Learners not explicitly assigned to a cohort)")}
+                        </div>
+                        %endif
+                    </label>
+                </li>
+                %endfor
+            </ul>
+            %endif
+            %if len(section_data['to_options']) > 0:
             <ul role="group" class="email-targets-secondary">
                 %for cohort in section_data['cohorts']:
                 <li>

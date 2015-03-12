@@ -22,6 +22,10 @@ from openedx.core.djangoapps.course_groups.models import CourseCohort
 from openedx.core.djangoapps.course_groups.cohorts import add_user_to_cohort
 from courseware.tests.factories import StaffFactory, InstructorFactory
 from lms.djangoapps.instructor_task.subtasks import update_subtask_status
+
+from courseware.models import StudentModule
+from lms.djangoapps.instructor_email_widget.models import StudentsForQuery, TemporaryQuery
+
 from student.roles import CourseStaffRole
 from student.models import CourseEnrollment
 from student.tests.factories import CourseEnrollmentFactory, UserFactory
@@ -441,6 +445,114 @@ class TestEmailSendFromDashboardMockedHtmlToText(EmailSendFromDashboardTestCase)
                                 [s.email for s in self.students] +
                                 [s.email for s in added_users if s not in optouts])
         self.assertItemsEqual(outbox_contents, should_send_contents)
+
+
+@attr(shard=1)
+@patch('bulk_email.models.html_to_text', Mock(return_value='Mocking CourseEmail.text_message', autospec=True))
+class TestEmailSendFromDashboardQueries(EmailSendFromDashboardTestCase):
+    def _setup_query(self):
+        """
+        Helper function for email to query tests
+        """
+        self.problem = self.course.id.make_usage_key('problem', '123')
+        self._make_query('opened')
+        temp_ids = self._get_temp_query_ids()
+        self._save_query(temp_ids)
+        saved_queries = self._get_saved_queries()
+        self.assertEquals(len(saved_queries), 1)
+        return saved_queries[0]['group']
+
+    def test_send_to_query(self):
+        """
+        Make sure email send to query goes there.
+        """
+        query_id = self._setup_query()
+        StudentModule.objects.create(
+            student=self.students[0],
+            course_id=self.course.id,
+            module_state_key=self.problem,
+        )
+        test_email = {
+            'action': 'Send email',
+            'send_to': query_id,
+            'subject': 'test subject for query',
+            'message': 'test message for all',
+        }
+        response = self.client.post(self.send_mail_url, test_email)
+        self.assertEquals(json.loads(response.content), self.success_content)
+
+        self.assertEquals(len(mail.outbox), 1)
+        self.assertEquals(mail.outbox[0].to[0], self.students[0].email)
+
+        students_left = StudentsForQuery.objects.all()
+        queries_left = TemporaryQuery.objects.all()
+        self.assertEquals(len(students_left), 0)
+        self.assertEquals(len(queries_left), 1) # should just have the one created from _setup_query
+
+    def test_send_to_query_no_results(self):
+        """
+        Make sure email send to query with no results handles successfully.
+        """
+        query_id = self._setup_query()
+        test_email = {
+            'action': 'Send email',
+            'send_to': query_id,
+            'subject': 'test subject for query',
+            'message': 'test message for all',
+        }
+        response = self.client.post(self.send_mail_url, test_email)
+        self.assertEquals(json.loads(response.content), self.success_content)
+        self.assertEquals(len(mail.outbox), 0)
+
+        queries_left = TemporaryQuery.objects.all()
+        self.assertEquals(len(queries_left), 1) # should just have the one created from _setup_query
+
+    def _make_query(self, query_type, joining="OR"):
+        """
+        Issues a query to the backend
+        """
+        url = reverse('get_single_query', kwargs={'course_id': self.course.id})
+        function_args = [joining, 'Problem', self.problem.block_type, self.problem.block_id]
+        single_args = {
+            'filter': query_type,
+            "entityName": 'Introduction',
+        }
+        encoded_args = '/'.join(function_args)
+        query_url = '/'.join([url, encoded_args])
+        _unused_response = self.client.get(query_url, single_args)
+
+    def _get_temp_query_ids(self):
+        """
+        Returns all the current queries
+        """
+        get_temp_url = reverse('get_temp_queries', kwargs={'course_id': self.course.id})
+        temp_response = self.client.get(get_temp_url)
+        queries = json.loads(temp_response.content)['queries']
+        prev_query_ids = [
+            str(query['id'])
+            for query in queries
+        ]
+        return prev_query_ids
+
+    def _save_query(self, existing):
+        """
+        Save a grouped query
+        """
+        save_url = reverse('save_query', kwargs={'course_id': self.course.id})
+        save_args = {
+            'existing': ','.join(existing),
+        }
+        response = self.client.get(save_url, save_args)
+        return response
+
+    def _get_saved_queries(self):
+        """
+        Retrieve saved group queries
+        """
+        get_saved_url = reverse('get_saved_queries', kwargs={'course_id': self.course.id})
+        temp_response = self.client.get(get_saved_url)
+        queries = json.loads(temp_response.content)['queries']
+        return queries
 
 
 @attr(shard=1)

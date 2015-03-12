@@ -50,6 +50,9 @@ from lms.djangoapps.instructor_task.subtasks import (
 from util.date_utils import get_default_time_display
 from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
 
+from lms.djangoapps.instructor.views.data_access import get_group_query_students, delete_group_temp_queries_and_students
+from lms.djangoapps.instructor_email_widget.models import GroupedQuery
+
 log = logging.getLogger('edx.celery.task')
 
 
@@ -94,6 +97,60 @@ BULK_EMAIL_FAILURE_ERRORS = (
 )
 
 
+<<<<<<< HEAD
+=======
+def _get_recipient_queryset(user_id, to_option, course_id, course_location):
+    """
+    Returns a query set of email recipients corresponding to the requested to_option category.
+
+    `to_option` is either SEND_TO_MYSELF, SEND_TO_STAFF, or SEND_TO_ALL.
+
+    Recipients who are in more than one category (e.g. enrolled in the course and are staff or self)
+    will be properly deduped.
+    """
+    if to_option.isdigit():
+        if not GroupedQuery.objects.filter(id=int(to_option)).exists():
+            message = "Bulk email TO_OPTION query id {query_id} does not exist".format(query_id=to_option)
+            log.error(message)
+            raise Exception(message)
+    elif to_option not in TO_OPTIONS:
+        log.error("Unexpected bulk email TO_OPTION found: %s", to_option)
+        raise Exception("Unexpected bulk email TO_OPTION found: {0}".format(to_option))
+
+    if to_option.isdigit():
+        recipient_queryset = get_group_query_students(course_id, int(to_option))
+        return recipient_queryset
+    elif to_option == SEND_TO_MYSELF:
+        recipient_qset = User.objects.filter(id=user_id)
+    else:
+        staff_qset = CourseStaffRole(course_id).users_with_role()
+        instructor_qset = CourseInstructorRole(course_id).users_with_role()
+        recipient_qset = (staff_qset | instructor_qset).distinct()
+        if to_option == SEND_TO_ALL:
+            # We also require students to have activated their accounts to
+            # provide verification that the provided email address is valid.
+            enrollment_qset = User.objects.filter(
+                is_active=True,
+                courseenrollment__course_id=course_id,
+                courseenrollment__is_active=True
+            )
+            # Now we do some queryset sidestepping to avoid doing a DISTINCT
+            # query across the course staff and the enrolled students, which
+            # forces the creation of a temporary table in the db.
+            unenrolled_staff_qset = recipient_qset.exclude(
+                courseenrollment__course_id=course_id, courseenrollment__is_active=True
+            )
+            # use read_replica if available:
+            unenrolled_staff_qset = use_read_replica_if_available(unenrolled_staff_qset)
+
+            unenrolled_staff_ids = [user.id for user in unenrolled_staff_qset]
+            recipient_qset = enrollment_qset | User.objects.filter(id__in=unenrolled_staff_ids)
+
+    # again, use read_replica if available to lighten the load for large queries
+    return use_read_replica_if_available(recipient_qset)
+
+
+>>>>>>> ae822a8... Allow bulk email to queries
 def _get_course_email_context(course):
     """
     Returns context arguments to apply to all emails, independent of recipient.
@@ -226,6 +283,15 @@ def perform_delegate_email_batches(entry_id, course_id, task_input, action_name)
         settings.BULK_EMAIL_EMAILS_PER_TASK,
         total_recipients,
     )
+
+
+<<<<<<< HEAD
+=======
+    # Cleanup for bulk email to saved queries
+    if to_option.isdigit():
+        delete_group_temp_queries_and_students(int(to_option))
+
+>>>>>>> ae822a8... Allow bulk email to queries
 
     # We want to return progress here, as this is what will be stored in the
     # AsyncResult for the parent task as its return value.
