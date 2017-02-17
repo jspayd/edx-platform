@@ -28,8 +28,10 @@ class GradesEventIntegrationTest(ProblemSubmissionTestMixin, SharedModuleStoreTe
     of the grading infrastructure.
     """
     @classmethod
-    def setUpClass(cls):
-        super(GradesEventIntegrationTest, cls).setUpClass()
+    def reset_course(cls):
+        """
+        Sets up the course anew.
+        """
         cls.store = modulestore()
         with cls.store.default_store(ModuleStoreEnum.Type.split):
             cls.course = CourseFactory.create()
@@ -64,6 +66,7 @@ class GradesEventIntegrationTest(ProblemSubmissionTestMixin, SharedModuleStoreTe
             )
 
     def setUp(self):
+        self.reset_course()
         super(GradesEventIntegrationTest, self).setUp()
         self.request = get_mock_request(UserFactory())
         self.student = self.request.user
