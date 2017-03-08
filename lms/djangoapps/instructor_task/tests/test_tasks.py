@@ -502,7 +502,7 @@ class TestOra2ResponsesInstructorTask(TestInstructorTasks):
         task_entry = self._create_input_entry()
         task_xmodule_args = self._get_xmodule_instance_args()
 
-        with patch('instructor_task.tasks.run_main_task') as mock_main_task:
+        with patch('lms.djangoapps.instructor_task.tasks.run_main_task') as mock_main_task:
             get_ora2_responses(task_entry.id, task_xmodule_args)
 
             action_name = ugettext_noop('generated')
@@ -530,7 +530,7 @@ class TestCourseForumsUsageInstructorTask(TestInstructorTasks):
         task_entry = self._create_input_entry()
         task_xmodule_args = self._get_xmodule_instance_args()
 
-        with patch('instructor_task.tasks.run_main_task') as mock_main_task:
+        with patch('lms.djangoapps.instructor_task.tasks.run_main_task') as mock_main_task:
             get_course_forums_usage(task_entry.id, task_xmodule_args)
 
             action_name = ugettext_noop('generated')
@@ -558,7 +558,7 @@ class TestStudentForumsUsageInstructorTask(TestInstructorTasks):
         task_entry = self._create_input_entry()
         task_xmodule_args = self._get_xmodule_instance_args()
 
-        with patch('instructor_task.tasks.run_main_task') as mock_main_task:
+        with patch('lms.djangoapps.instructor_task.tasks.run_main_task') as mock_main_task:
             get_student_forums_usage(task_entry.id, task_xmodule_args)
             action_name = ugettext_noop('generated')
             task_fn = partial(push_student_forums_data_to_s3, task_xmodule_args)

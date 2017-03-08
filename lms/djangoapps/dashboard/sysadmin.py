@@ -39,7 +39,7 @@ import dashboard.git_import as git_import
 from django_comment_client.management_utils import rename_user as rename_user_util
 from dashboard.git_import import GitImportError
 from dashboard.models import CourseImportLog
-from instructor_task.models import InstructorTask
+from lms.djangoapps.instructor_task.models import InstructorTask
 from openedx.core.djangoapps.external_auth.models import ExternalAuthMap
 from openedx.core.djangoapps.external_auth.views import generate_password
 from student.models import CourseEnrollment, UserProfile, Registration

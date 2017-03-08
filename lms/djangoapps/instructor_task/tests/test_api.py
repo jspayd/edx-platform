@@ -36,7 +36,7 @@ from lms.djangoapps.instructor_task.api import (
 )
 
 # Stanford Fork
-from instructor_task.tasks import (
+from lms.djangoapps.instructor_task.tasks import (
     get_ora2_responses,
     get_course_forums_usage,
     get_student_forums_usage,
@@ -262,7 +262,7 @@ class InstructorTaskCourseSubmitTest(TestReportMixin, InstructorTaskCourseTestCa
     def test_submit_ora2_request_task(self):
         request = self.create_task_request(self.instructor)
 
-        with patch('instructor_task.api.submit_task') as mock_submit_task:
+        with patch('lms.djangoapps.instructor_task.api.submit_task') as mock_submit_task:
             mock_submit_task.return_value = MagicMock()
             submit_ora2_request_task(request, self.course.id, "True")
 
@@ -271,7 +271,7 @@ class InstructorTaskCourseSubmitTest(TestReportMixin, InstructorTaskCourseTestCa
     def test_submit_ora2_email_request_task(self):
         request = self.create_task_request(self.instructor)
 
-        with patch('instructor_task.api.submit_task') as mock_submit_task:
+        with patch('lms.djangoapps.instructor_task.api.submit_task') as mock_submit_task:
             mock_submit_task.return_value = MagicMock()
             submit_ora2_request_task(request, self.course.id, "False")
 
@@ -281,7 +281,7 @@ class InstructorTaskCourseSubmitTest(TestReportMixin, InstructorTaskCourseTestCa
     def test_submit_student_forums_usage_task(self):
         request = self.create_task_request(self.instructor)
 
-        with patch('instructor_task.api.submit_task') as mock_submit_task:
+        with patch('lms.djangoapps.instructor_task.api.submit_task') as mock_submit_task:
             mock_submit_task.return_value = MagicMock()
             submit_student_forums_usage_task(request, self.course.id)
 

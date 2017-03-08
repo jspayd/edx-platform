@@ -6,7 +6,7 @@ from mock import patch
 from django.test import RequestFactory
 from django.test.utils import override_settings
 
-from courseware.views import get_analytics_answer_dist, process_analytics_answer_dist
+from courseware.views.views import get_analytics_answer_dist, process_analytics_answer_dist
 from courseware.tests.factories import UserFactory, InstructorFactory, StaffFactory
 from xmodule.modulestore.tests.factories import CourseFactory
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
@@ -456,8 +456,8 @@ class InlineAnalyticsAnswerDistributionWithOverrides(ModuleStoreTestCase):
         response = get_analytics_answer_dist(request)
         self.assertEquals(response.content, self.zendesk_response)
 
-    @patch('courseware.views.process_analytics_answer_dist')
-    @patch('courseware.views.Client')
+    @patch('courseware.views.views.process_analytics_answer_dist')
+    @patch('courseware.views.views.Client')
     def test_staff_and_url(self, mock_client, mock_process_analytics):
         mock_client.return_value.modules.return_value.answer_distribution.return_value = [{}]
         factory = self.factory
@@ -468,8 +468,8 @@ class InlineAnalyticsAnswerDistributionWithOverrides(ModuleStoreTestCase):
         response = get_analytics_answer_dist(request)
         self.assertEquals(response, [{'dummy': 'dummy'}])
 
-    @patch('courseware.views.process_analytics_answer_dist')
-    @patch('courseware.views.Client')
+    @patch('courseware.views.views.process_analytics_answer_dist')
+    @patch('courseware.views.views.Client')
     def test_instructor_and_url(self, mock_client, mock_process_analytics):
         mock_client.return_value.modules.return_value.answer_distribution.return_value = [{}]
 
@@ -481,7 +481,7 @@ class InlineAnalyticsAnswerDistributionWithOverrides(ModuleStoreTestCase):
         response = get_analytics_answer_dist(request)
         self.assertEquals(response, [{'dummy': 'dummy'}])
 
-    @patch('courseware.views.Client')
+    @patch('courseware.views.views.Client')
     def test_not_found_error(self, mock_client):
         mock_client.return_value.modules.return_value.answer_distribution.side_effect = NotFoundError
 
@@ -493,7 +493,7 @@ class InlineAnalyticsAnswerDistributionWithOverrides(ModuleStoreTestCase):
         self.assertEquals(response.status_code, 404)
         self.assertEquals(response.content, 'There are no student answers for this problem yet; please try again later.')
 
-    @patch('courseware.views.Client')
+    @patch('courseware.views.views.Client')
     def test_invalid_request_error(self, mock_client):
         mock_client.return_value.modules.return_value.answer_distribution.side_effect = InvalidRequestError
 
@@ -505,7 +505,7 @@ class InlineAnalyticsAnswerDistributionWithOverrides(ModuleStoreTestCase):
         self.assertEquals(response.status_code, 500)
         self.assertEquals(response.content, self.zendesk_response)
 
-    @patch('courseware.views.Client')
+    @patch('courseware.views.views.Client')
     def test_timeout_error(self, mock_client):
         mock_client.return_value.modules.return_value.answer_distribution.side_effect = TimeoutError
 
