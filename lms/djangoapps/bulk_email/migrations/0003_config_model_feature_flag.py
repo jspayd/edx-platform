@@ -11,6 +11,7 @@ class Migration(migrations.Migration):
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('bulk_email', '0002_data__load_course_email_template'),
+        ('bulk_email', '0003_alter_field_to_option'),
     ]
 
     operations = [
