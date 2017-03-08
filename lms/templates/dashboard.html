@@ -134,10 +134,6 @@ from openedx.core.djangolib.markup import HTML, Text
         % endif
     </div>
 
-    % if self.dashboard_extra_file:
-        <%include file='${self.dashboard_extra_file}' />
-    % endif
-
       % if settings.FEATURES.get('ENABLE_DASHBOARD_SEARCH'):
         <div id="dashboard-search-bar" class="search-bar dashboard-search-bar" role="search" aria-label="Dashboard">
           <form>
@@ -179,6 +175,7 @@ from openedx.core.djangolib.markup import HTML, Text
 
           </ul>
             </div>
+          <%include file='dashboard/user_info_extra.html' />
         </div>
     </div>
 </main>

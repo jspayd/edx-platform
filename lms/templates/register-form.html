@@ -4,7 +4,12 @@ from third_party_auth import pipeline, provider
 from django.utils.translation import ugettext as _
 from django_countries import countries
 from student.models import UserProfile
+from microsite_configuration import microsite
 %>
+<%def name="theme_enabled()"><% return settings.FEATURES.get("USE_CUSTOM_THEME", False) %></%def>
+<%def name="is_microsite()"><% return microsite.is_request_in_microsite() %></%def>
+<%def name="stanford_theme_enabled()"><% return theme_enabled() and not is_microsite() %></%def>
+<%namespace name='static' file='static_content.html'/>
 
 <input type="hidden" name="csrfmiddlewaretoken" value="${ csrf_token }">
 
@@ -229,9 +234,7 @@ from student.models import UserProfile
     % endif
   </ol>
 </div>
-% if stanford_theme_enabled():
-  <%include file='theme-register_extra.html' />
-% endif
+<%static:optional_include_mako file="register_extra.html" is_theming_enabled="True" />
 <div class="group group-form group-form-accountacknowledgements">
   <h2 class="sr">${_("Account Acknowledgements")}</h2>
 

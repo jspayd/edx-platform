@@ -330,9 +330,7 @@ from openedx.core.lib.courses import course_image_url
             <li class="important-dates-item"><span class="icon fa fa-book" aria-hidden="true"></span><p class="important-dates-item-title">${_("Requirements")}</p><span class="important-dates-item-text prerequisites">${get_course_about_section(request, course, "prerequisites")}</span></li>
           % endif
         </ol>
-    % if self.course_about_sidebar_extra_file:
-        <%include file="${self.course_about_sidebar_extra_file}" />
-    % endif
+        <%static:optional_include_mako file="course_about_sidebar_extra.html" />
     </div>
 
       ## CourseTalk widget

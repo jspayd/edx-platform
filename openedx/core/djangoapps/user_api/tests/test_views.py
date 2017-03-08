@@ -1257,7 +1257,7 @@ class RegistrationViewTest(ThirdPartyAuthTestMixin, UserAPITestCase):
         )
 
         # Terms of service field should also be present
-        link_label = '<a href=\"https://www.test.com/tos\">Terms of Service</a> and <a href=\"https://www.test.com/tos#privacy\">Privacy Policy</a>'
+        link_label = 'Terms of Service'
         self._assert_reg_field(
             {"honor_code": "required", "terms_of_service": "required"},
             {
@@ -1305,7 +1305,7 @@ class RegistrationViewTest(ThirdPartyAuthTestMixin, UserAPITestCase):
         self._assert_reg_field(
             {"honor_code": "required", "terms_of_service": "required"},
             {
-                "label": u"I agree to the {platform_name} <a href=\"/tos\">Terms of Service</a> and <a href=\"/tos#privacy\">Privacy Policy</a>.".format(  # pylint: disable=line-too-long
+                "label": u"I agree to the {platform_name} Terms of Service".format(
                     platform_name=settings.PLATFORM_NAME
                 ),
                 "name": "terms_of_service",
@@ -1313,7 +1313,7 @@ class RegistrationViewTest(ThirdPartyAuthTestMixin, UserAPITestCase):
                 "type": "checkbox",
                 "required": True,
                 "errorMessages": {
-                    "required": u"You must agree to the {platform_name} <a href=\"/tos\">Terms of Service</a> and <a href=\"/tos#privacy\">Privacy Policy</a>.".format(  # pylint: disable=line-too-long
+                    "required": u"You must agree to the {platform_name} Terms of Service".format(  # pylint: disable=line-too-long
                         platform_name=settings.PLATFORM_NAME
                     )
                 }

@@ -523,13 +523,13 @@ CMS.URL.UPLOAD_ASSET = '${upload_asset_url | n, js_escaped_string}'
             <span class="tip">${_("Settings for emails that students receive upon course enrollment")}</span>
           </header>
           <section class="group-settings">
-            <p>${_("{strong_start}By default, this feature is disabled.{strong_end} You can either use the default email content or create your own. "
+            <p>${Text(_("{strong_start}By default, this feature is disabled.{strong_end} You can either use the default email content or create your own. "
             "Students enrolling right on the start date will receive the post-course-start email. "
-            "{strong_start}Email bodies support {link_start}keyword substitution{link_end}.{strong_end}").format(
-                strong_start="<strong>",
-                strong_end="</strong>",
-                link_start="<a rel='modal' href='#keyword-sub-modal'>",
-                link_end="</a>"
+            "{strong_start}Email bodies support {link_start}keyword substitution{link_end}.{strong_end}")).format(
+                strong_start=HTML("<strong>"),
+                strong_end=HTML("</strong>"),
+                link_start=HTML("<a rel='modal' href='#keyword-sub-modal'>"),
+                link_end=HTML("</a>")
               )}
               <br />
             </p>
@@ -540,7 +540,7 @@ CMS.URL.UPLOAD_ASSET = '${upload_asset_url | n, js_escaped_string}'
             <section class="group-settings" id="custom-enrollment-email-settings"><!-- IMPORTANT -->
               <section class="group-settings">
                 <p>
-                  ${_("Message for students who enroll {strong_start}before the start date{strong_end}").format(strong_start="<strong>", strong_end="</strong>")}
+                  ${Text(_("Message for students who enroll {strong_start}before the start date{strong_end}")).format(strong_start=HTML("<strong>"), strong_end=HTML("</strong>"))}
                   <a class="send-test-email" id='test_email_pre' title="${_('Send me a copy of this via email')}" href="#" data-endpoint="${test_email_url}">${_("Send me a test email")}</a>
                   <a class="fill-default-email" id='fill_default_email_pre' title="${_('Reset to default content')}" href="#">${_("Reset to default content")}</a>
                 </p>
@@ -560,7 +560,7 @@ CMS.URL.UPLOAD_ASSET = '${upload_asset_url | n, js_escaped_string}'
               </section>
               <section class="group-settings">
                 <p>
-                  ${_("Message for students who enroll {strong_start}on or after the start date{strong_end}").format(strong_start="<strong>", strong_end="</strong>")}
+                  ${Text(_("Message for students who enroll {strong_start}on or after the start date{strong_end}")).format(strong_start=HTML("<strong>"), strong_end=HTML("</strong>"))}
                   <a class="send-test-email" id='test_email_post' title="${_('Send me a copy of this via email')}" href="#" data-endpoint="${test_email_url}">${_("Send me a test email")}</a>
                   <a class="fill-default-email" id='fill_default_email_post' title="${_('Reset to default content')}" href="#">${_("Reset to default content")}</a>
                 </p>

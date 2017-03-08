@@ -1237,7 +1237,7 @@ def notify_enrollment_by_email(course, user, request):
     """
 
     if (not (settings.FEATURES.get('AUTOMATIC_AUTH_FOR_TESTING')) and course.enable_enrollment_email):
-        from_address = microsite.get_value('email_from_address', settings.DEFAULT_FROM_EMAIL)
+        from_address = configuration_helpers.get_value('email_from_address', settings.DEFAULT_FROM_EMAIL)
 
         try:
             # Check if the course has already started and set subject & message accordingly

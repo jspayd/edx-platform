@@ -19,9 +19,6 @@
   {% javascript 'main_vendor' %}
   {% endblock %}
   {% block headextra %}{% endblock %}
-  {% if FEATURES.USE_CUSTOM_THEME %}
-    {% include "theme-head-extra.html" %}
-  {% endif %}
   {% render_block "css" %}
 
   {% optional_include "head-extra.html"|microsite_template_path %}
@@ -40,7 +37,7 @@
       {% block bodyextra %}{% endblock %}
     </div>
     {% with course=request.course %}
-      {% include "themable-footer.html" %}
+      {% include "footer.html" %}
     {% endwith %}
 
   </div>
