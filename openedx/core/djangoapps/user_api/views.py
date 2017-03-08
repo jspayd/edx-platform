@@ -175,6 +175,7 @@ class RegistrationView(APIView):
         "goals",
         "honor_code",
         "terms_of_service",
+        "privacy_policy",
     ]
 
     # This end-point is available to anonymous users,
@@ -830,18 +831,16 @@ class RegistrationView(APIView):
 
         # Translators: "Terms of service" is a legal document users must agree to
         # in order to register a new account.
-        label = _(u"I agree to the {platform_name} {terms_of_service} and {privacy_policy}.").format(
+        label = _(u"I agree to the {platform_name} {terms_of_service}").format(
             platform_name=configuration_helpers.get_value("PLATFORM_NAME", settings.PLATFORM_NAME),
-            privacy_policy=privacy_link,
-            terms_of_service=terms_link
+            terms_of_service=terms_label
         )
 
         # Translators: "Terms of service" is a legal document users must agree to
         # in order to register a new account.
-        error_msg = _(u"You must agree to the {platform_name} {terms_of_service} and {privacy_policy}.").format(
+        error_msg = _(u"You must agree to the {platform_name} {terms_of_service}").format(
             platform_name=configuration_helpers.get_value("PLATFORM_NAME", settings.PLATFORM_NAME),
-            privacy_policy=privacy_link,
-            terms_of_service=terms_link
+            terms_of_service=terms_label
         )
 
         form_desc.add_field(
@@ -855,6 +854,49 @@ class RegistrationView(APIView):
             },
             supplementalLink=terms_link,
             supplementalText=terms_text
+        )
+
+    def _add_privacy_policy_field(self, form_desc, required=True):
+        """Add a privacy policy field to a form description.
+
+        Arguments:
+            form_desc: A form description
+
+        Keyword Arguments:
+            required (bool): Whether this field is required; defaults to True
+
+        """
+        # Translators: This is a legal document users must agree to
+        # in order to register a new account.
+        privacy_label = _(u'Privacy Policy')
+        privacy_link = marketing_link("PRIVACY")
+        privacy_text = _(u"Review the Privacy Policy")
+
+        # Translators: "Terms of service" is a legal document users must agree to
+        # in order to register a new account.
+        label = _(u"I agree to the {platform_name} {privacy}").format(
+            platform_name=configuration_helpers.get_value("PLATFORM_NAME", settings.PLATFORM_NAME),
+            privacy=privacy_label
+        )
+
+        # Translators: "Privacy Policy" is a legal document users must agree to
+        # in order to register a new account.
+        error_msg = _(u"You must agree to the {platform_name} {privacy}").format(
+            platform_name=configuration_helpers.get_value("PLATFORM_NAME", settings.PLATFORM_NAME),
+            privacy=privacy_label
+        )
+
+        form_desc.add_field(
+            "privacy_policy",
+            label=label,
+            field_type="checkbox",
+            default=False,
+            required=required,
+            error_messages={
+                "required": error_msg
+            },
+            supplementalLink=privacy_link,
+            supplementalText=privacy_text
         )
 
     def _apply_third_party_auth_overrides(self, request, form_desc):

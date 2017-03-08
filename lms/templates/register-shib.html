@@ -170,6 +170,7 @@ import calendar
               <input id="honorcode-yes" type="checkbox" name="honor_code" value="true" />
               <%
                 ## TODO: provide a better way to override these links
+                self.register_honor_link = marketing_link('TOS') + '#honor'
                 if self.register_honor_link:
                   honor_code_path = self.register_honor_link
                 else:

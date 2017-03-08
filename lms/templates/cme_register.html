@@ -559,6 +559,7 @@
               <input id="honorcode-yes" type="checkbox" name="honor_code" value="true" />
               <%
                 ## TODO: provide a better way to override these links
+                self.register_honor_link = marketing_link('TOS') + '#honor'
                 if self.register_honor_link:
                   honor_code_path = self.register_honor_link
                 else:
@@ -597,20 +598,10 @@
     </div>
     % endif
 
-    ## TODO: Use a %block tag or something to allow themes to
-    ## override in a more generalizable fashion.
-    % if self.register_sidebar_extra_file:
-        <%include file='${self.register_sidebar_extra_file}' />
-    % else:
-      <div class="cta cta-welcome">
-        <h3>Welcome to ${settings.PLATFORM_NAME}</h3>
-        <p>Registering with ${settings.PLATFORM_NAME} gives you access to all of our current and future free courses. Not ready to take a course just yet? Registering puts you on our mailing list – we will update you as courses are added.</p>
-      </div>
       <div class="cta cta-nextsteps">
-        <h3>Next Steps</h3>
-        <p>As part of joining ${settings.PLATFORM_NAME}, you will receive an activation email. You must click on the activation link to complete the process. Don’t see the email? Check your spam folder and mark ${settings.PLATFORM_NAME} emails as ‘not spam’. At ${settings.PLATFORM_NAME}, we communicate mostly through email.</p>
+        <h3>${_("Next Steps")}</h3>
+        <p>${_("You will receive an activation email.  You must click on the activation link to complete the process.  Don't see the email?  Check your spam folder and mark emails from suclass.stanford.edu as 'not spam', since you'll want to be able to receive email from your courses.")}</p>
       </div>
-    % endif
 
     % if settings.MKTG_URL_LINK_MAP.get('FAQ'):
       <div class="cta cta-help">

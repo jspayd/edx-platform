@@ -22,6 +22,7 @@ from edxmako.shortcuts import render_to_response
 import pytz
 
 from commerce.models import CommerceConfiguration
+from microsite_configuration import microsite
 from openedx.core.djangoapps.external_auth.login_and_register import (
     login as external_auth_login,
     register as external_auth_register

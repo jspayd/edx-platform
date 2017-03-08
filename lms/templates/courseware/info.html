@@ -83,9 +83,7 @@ from openedx.core.djangolib.markup import HTML, Text
 
           <h4>${_("Course Updates and News")}</h4>
           ${HTML(get_course_info_section(request, masquerade_user, course, 'updates'))}
-          % if self.course_info_extra_file:
-            <%include file="${self.course_info_extra_file}" />
-          % endif
+          <%static:optional_include_mako file="course_info_extra.html" />
 
           ## CourseTalk widget
           % if show_coursetalk_widget:

@@ -17,16 +17,8 @@ ${_("There's just one more step before you can enroll in a course: "
   http://${ site }/activate/${ key }
 % endif
 
-% if stanford_theme_enabled():  ## Temporary hack until we develop a better way to adjust language
 ${_("If you didn't request this, you don't need to do anything; you won't "
     "receive any more email from us. Please do not reply to this email. "
     "For more information, check our Help Center here: ")}
 
   ${settings.ZENDESK_URL}
-% else:
-${_("If you didn't request this, you don't need to do anything; you won't "
-    "receive any more email from us. Please do not reply to this email. "
-    "For more information, check our Help Center here: ")}
-
-  ${settings.ZENDESK_URL}
-% endif
