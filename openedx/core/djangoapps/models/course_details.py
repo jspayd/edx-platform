@@ -119,7 +119,7 @@ class CourseDetails(object):
         course_details.end_date = course_descriptor.end
         course_details.enrollment_start = course_descriptor.enrollment_start
         course_details.enrollment_end = course_descriptor.enrollment_end
-        course_details.enable_enrollment_email = descriptor.enable_enrollment_email
+        course_details.enable_enrollment_email = course_descriptor.enable_enrollment_email
         course_details.pre_requisite_courses = course_descriptor.pre_requisite_courses
         course_details.course_image_name = course_descriptor.course_image
         course_details.course_image_asset_path = course_image_url(course_descriptor, 'course_image')
