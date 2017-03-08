@@ -2875,7 +2875,7 @@ def get_student_responses(request, course_id):
     """
     course_key = SlashSeparatedCourseKey.from_deprecated_string(course_id)
     try:
-        instructor_task.api.submit_get_student_responses(request, course_key)
+        lms.djangoapps.instructor_task.api.submit_get_student_responses(request, course_key)
         success_status = _("Your student responses report is being generated! You can view the status of the generation task in the 'Pending Instructor Tasks' section.")
         return JsonResponse({"status": success_status})
     except AlreadyRunningError:
@@ -3002,7 +3002,7 @@ def get_student_forums_usage(request, course_id):
     """
     course_key = SlashSeparatedCourseKey.from_deprecated_string(course_id)
     try:
-        instructor_task.api.submit_student_forums_usage_task(request, course_key)
+        lms.djangoapps.instructor_task.api.submit_student_forums_usage_task(request, course_key)
         success_status = _("The student forums usage report is being generated.")
         return JsonResponse({"status": success_status})
     except AlreadyRunningError:
@@ -3028,7 +3028,7 @@ def get_ora2_responses(request, course_id, include_email):
     """
     course_key = locator.CourseLocator.from_string(course_id)
     try:
-        instructor_task.api.submit_ora2_request_task(request, course_key, include_email)
+        lms.djangoapps.instructor_task.api.submit_ora2_request_task(request, course_key, include_email)
         success_status = _("The ORA2 responses report is being generated.")
         return JsonResponse({"status": success_status})
     except AlreadyRunningError:
@@ -3054,7 +3054,7 @@ def get_course_forums_usage(request, course_id):
     """
     course_key = SlashSeparatedCourseKey.from_deprecated_string(course_id)
     try:
-        instructor_task.api.submit_course_forums_usage_task(request, course_key)
+        lms.djangoapps.instructor_task.api.submit_course_forums_usage_task(request, course_key)
         success_status = _("The course forums usage report is being generated.")
         return JsonResponse({"status": success_status})
     except AlreadyRunningError:

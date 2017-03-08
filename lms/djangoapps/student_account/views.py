@@ -27,7 +27,7 @@ from openedx.core.djangoapps.external_auth.login_and_register import (
     register as external_auth_register
 )
 
-from external_auth.models import ExternalAuthMap # <- Stanford Fork
+from openedx.core.djangoapps.external_auth.models import ExternalAuthMap # <- Stanford Fork
 
 from openedx.core.djangoapps.commerce.utils import ecommerce_api_client
 from openedx.core.djangoapps.lang_pref.api import released_languages, all_languages

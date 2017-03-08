@@ -15,7 +15,7 @@ ASSUMPTIONS: modules have unique IDs, even across different module_types
 from django.contrib.auth.models import User
 from django.db import models
 from instructor.views.data_access_constants import Inclusion, QueryOrigin, QUERYORIGIN_MAP
-from xmodule_django.models import CourseKeyField, LocationKeyField
+from openedx.core.djangoapps.xmodule_django.models import CourseKeyField, LocationKeyField
 
 
 class GroupedQuery(models.Model):
