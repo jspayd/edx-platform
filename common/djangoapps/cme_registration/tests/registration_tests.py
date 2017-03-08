@@ -32,7 +32,7 @@ class TestCmeRegistration(UrlResetMixin, TestCase):
 
     def setUp(self):
         TEST_FEATURES['ENABLE_COMBINED_LOGIN_REGISTRATION'] = False
-        super(TestCmeRegistration, self).setUp('lms.urls')
+        super(TestCmeRegistration, self).setUp()
 
         self.post_vars = {'username': 'testuser',
                           'email': 'test@email.com',
