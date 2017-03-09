@@ -1059,7 +1059,6 @@ class StartDateTests(ModuleStoreTestCase):
     Test that start dates are properly localized and displayed on the student
     dashboard.
     """
-    MODULESTORE = TEST_DATA_MIXED_TOY_MODULESTORE
 
     def setUp(self):
         super(StartDateTests, self).setUp()
