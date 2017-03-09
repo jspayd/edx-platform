@@ -30,7 +30,7 @@ from courseware.tests.factories import StudentModuleFactory
 from opaque_keys.edx.keys import CourseKey
 from opaque_keys.edx.locations import Location
 from student.tests.factories import CourseEnrollmentFactory, UserFactory
-from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase, xml_store_config
+from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 
 from instructor_task.tasks_helper import (
     cohort_students_and_upload,
@@ -118,7 +118,6 @@ class InstructorGradeReportTestCase(TestReportMixin, InstructorTaskCourseTestCas
                         self.assertEqual(row[column_header], expected_cell_content)
 
 TEST_DATA_DIR = settings.COMMON_TEST_DATA_ROOT
-TEST_DATA_XML_MODULESTORE = xml_store_config(TEST_DATA_DIR, source_dirs=['unicode_graded'])
 
 
 @ddt.ddt
@@ -1284,7 +1283,6 @@ class TestReponsesReport(TestReportMixin, ModuleStoreTestCase):
     """
     Tests that CSV student responses report generation works.
     """
-    MODULESTORE = TEST_DATA_XML_MODULESTORE
 
     def test_unicode(self):
         course_key = CourseKey.from_string('edX/unicode_graded/2012_Fall')

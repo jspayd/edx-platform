@@ -32,7 +32,6 @@ from shoppingcart.models import (
     Invoice, Coupon, CourseRegCodeItem, CouponRedemption, CourseRegistrationCodeInvoiceItem
 )
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
-from xmodule.modulestore.tests.django_utils import TEST_DATA_MIXED_GRADED_MODULESTORE
 from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory
 from edx_proctoring.api import create_exam
 from edx_proctoring.models import ProctoredExamStudentAttempt
@@ -594,7 +593,6 @@ class TestCourseRegistrationCodeAnalyticsBasic(ModuleStoreTestCase):
 
 class TestStudentResponsesAnalyticsBasic(ModuleStoreTestCase):
     """ Test basic student responses analytics function. """
-    MODULESTORE = TEST_DATA_MIXED_GRADED_MODULESTORE
 
     def create_student(self):
         self.student = UserFactory()
