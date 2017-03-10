@@ -145,6 +145,13 @@ INSTRUCTOR_GET_ENDPOINTS = set([
     'get_issued_certificates',
     'get_sale_order_records',
     'get_sale_records',
+
+    'get_all_students',
+    'get_saved_queries',
+    'get_temp_queries',
+    'list_course_problems',
+    'list_course_sections',
+    'list_course_tree',
 ])
 INSTRUCTOR_POST_ENDPOINTS = set([
     'active_registration_codes',
@@ -187,6 +194,19 @@ INSTRUCTOR_POST_ENDPOINTS = set([
     'spent_registration_codes',
     'students_update_enrollment',
     'update_forum_role_membership',
+
+    'delete_report_download',
+    'delete_saved_query',
+    'delete_temp_query',
+    'delete_temp_query_batch',
+    'get_course_forums_usage',
+    'get_ora2_responses',
+    'get_single_query',
+    'get_student_forums_usage',
+    'get_student_responses',
+    'graph_course_forums_usage',
+    'save_group_name',
+    'save_query',
 ])
 
 
@@ -289,11 +309,7 @@ class TestEmailQueries(ModuleStoreTestCase, LoginEnrollmentTestCase):
 
     def setUp(self):
         super(TestEmailQueries, self).setUp()
-        self.course = CourseFactory.create(
-            org="edX",
-            number="emailToy",
-            run="2015_Winter",
-        )
+        self.course = CourseFactory.create()
         self.course_key = self.course.id
         self.instructor = InstructorFactory(course_key=self.course_key)
         self.client.login(username=self.instructor.username, password='test')
@@ -337,7 +353,7 @@ class TestEmailQueries(ModuleStoreTestCase, LoginEnrollmentTestCase):
         }
         encoded_args = '/'.join(function_args)
         query_url = '/'.join([url, encoded_args])
-        _unused_response = self.client.get(query_url, single_args)
+        _unused_response = self.client.post(query_url, single_args)
 
     def _get_temp_query_ids(self):
         """
@@ -370,7 +386,7 @@ class TestEmailQueries(ModuleStoreTestCase, LoginEnrollmentTestCase):
         }
         if csv:
             get_all_url += "/csv"
-        all_response = self.client.get(get_all_url, all_args)
+        all_response = self.client.post(get_all_url, all_args)
         if csv:
             return all_response.content
         students = json.loads(all_response.content)['data']
@@ -832,9 +848,17 @@ class TestEndpointHttpMethods(SharedModuleStoreTestCase, LoginEnrollmentTestCase
         """
         Tests that POST endpoints are rejected with 405 when using GET.
         """
-        url = reverse(data, kwargs={'course_id': unicode(self.course.id)})
+        if data == 'get_ora2_responses':
+            url = reverse(
+                data,
+                kwargs={
+                    'course_id': unicode(self.course.id),
+                    'include_email': 'True',
+                }
+            )
+        else:
+            url = reverse(data, kwargs={'course_id': unicode(self.course.id)})
         response = self.client.get(url)
-
         self.assertEqual(
             response.status_code, 405,
             "Endpoint {} returned status code {} instead of a 405. It should not allow GET.".format(
@@ -3546,7 +3570,7 @@ class TestInstructorAPILevelsDataDump(SharedModuleStoreTestCase, LoginEnrollment
             """method to be used as a side_effect for LocalFSReportStore.delete_file"""
             pass
         url = reverse('delete_report_download', kwargs={'course_id': unicode(self.course.id)})
-        with patch('instructor_task.models.LocalFSReportStore.delete_file', side_effect=noop()):
+        with patch('lms.djangoapps.instructor_task.models.DjangoStorageReportStore.delete_file', side_effect=noop()):
             response = self.client.post(url, {})
         self.assertEqual(response.status_code, 200)
 
@@ -3635,32 +3659,32 @@ class TestInstructorAPILevelsDataDump(SharedModuleStoreTestCase, LoginEnrollment
     def test_collect_course_forums_data_success(self):
         url = reverse('get_course_forums_usage', kwargs={'course_id': unicode(self.course.id)})
 
-        with patch('instructor_task.api.submit_course_forums_usage_task'):
-            response = self.client.get(url, {})
+        with patch('lms.djangoapps.instructor_task.api.submit_course_forums_usage_task'):
+            response = self.client.post(url, {})
         success_status = "The course forums usage report is being generated."
         self.assertIn(success_status, response.content)
 
     def test_collect_course_forums_data_already_running(self):
         url = reverse('get_course_forums_usage', kwargs={'course_id': unicode(self.course.id)})
 
-        with patch('instructor_task.api.submit_course_forums_usage_task') as mock_submit_course_forums_usage_task:
+        with patch('lms.djangoapps.instructor_task.api.submit_course_forums_usage_task') as mock_submit_course_forums_usage_task:
             mock_submit_course_forums_usage_task.side_effect = AlreadyRunningError()
-            response = self.client.get(url, {})
+            response = self.client.post(url, {})
         already_running_status = "A course forums usage report task is already in progress."
         self.assertIn(already_running_status, response.content)
 
     def test_get_student_forums_usage_success(self):
         url = reverse('get_student_forums_usage', kwargs={'course_id': unicode(self.course.id)})
 
-        with patch('instructor_task.api.submit_student_forums_usage_task'):
-            response = self.client.get(url, {})
+        with patch('lms.djangoapps.instructor_task.api.submit_student_forums_usage_task'):
+            response = self.client.post(url, {})
         success_status = "The student forums usage report is being generated."
         self.assertIn(success_status, response.content)
 
     def test_get_student_forums_usage_already_running(self):
         url = reverse('get_student_forums_usage', kwargs={'course_id': unicode(self.course.id)})
 
-        with patch('instructor_task.api.submit_student_forums_usage_task') as mock_submit_student_forums_task:
+        with patch('lms.djangoapps.instructor_task.api.submit_student_forums_usage_task') as mock_submit_student_forums_task:
             mock_submit_student_forums_task.side_effect = AlreadyRunningError()
             response = self.client.get(url, {})
         already_running_status = "A student forums usage report task is already in progress."

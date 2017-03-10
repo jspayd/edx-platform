@@ -276,7 +276,7 @@ class DjangoStorageReportStore(ReportStore):
         Given the `course_id` and `filename` for the report, this method deletes the report
         """
         path = self.path_to(course_id, filename)
-        os.remove(path)
+        self.storage.delete(path)
 
     def links_for(self, course_id):
         """
