@@ -594,27 +594,25 @@ class TestCourseRegistrationCodeAnalyticsBasic(ModuleStoreTestCase):
 class TestStudentResponsesAnalyticsBasic(ModuleStoreTestCase):
     """ Test basic student responses analytics function. """
 
+    def setUp(self):
+        super(TestStudentResponsesAnalyticsBasic, self).setUp()
+        self.course = CourseFactory.create()
+
     def create_student(self):
         self.student = UserFactory()
         CourseEnrollment.enroll(self.student, self.course.id)
 
     def test_empty_course(self):
-        self.course = CourseFactory.create()
         self.create_student()
-
         datarows = list(student_responses(self.course))
         self.assertEqual(datarows, [])
 
     def test_full_course_no_students(self):
-        self.course = get_course(CourseKey.from_string('edX/graded/2012_Fall'))
-
         datarows = list(student_responses(self.course))
         self.assertEqual(datarows, [])
 
     def test_invalid_module_state(self):
-        self.course = get_course(CourseKey.from_string('edX/graded/2012_Fall'))
         self.problem_location = Location("edX", "graded", "2012_Fall", "problem", "H1P2")
-
         self.create_student()
         StudentModuleFactory.create(
             course_id=self.course.id,
@@ -623,15 +621,11 @@ class TestStudentResponsesAnalyticsBasic(ModuleStoreTestCase):
             grade=0,
             state=u'{"student_answers":{"fake-problem":"No idea"}}}'
         )
-
         datarows = list(student_responses(self.course))
         #Invalid module state response will be skipped, so datarows should be empty
         self.assertEqual(len(datarows), 0)
 
     def test_problem_with_student_answer_and_answers(self):
-        self.course = CourseFactory.create(
-            display_name=u'test course',
-        )
         section = ItemFactory.create(
             parent_location=self.course.location,
             category='chapter',
@@ -672,9 +666,7 @@ class TestStudentResponsesAnalyticsBasic(ModuleStoreTestCase):
             parent_location=content_library.location,
             category='problem',
         )
-
         self.create_student()
-
         StudentModuleFactory.create(
             course_id=self.course.id,
             module_state_key=problem.location,
@@ -703,7 +695,6 @@ class TestStudentResponsesAnalyticsBasic(ModuleStoreTestCase):
             grade=0,
             state=u'{"student_answers":{"problem_id":"content library response1"}}',
         )
-
         course_with_children = modulestore().get_course(self.course.id, depth=4)
         datarows = list(student_responses(course_with_children))
         self.assertEqual(datarows[0][-1], u'problem_id=student response1')
@@ -712,9 +703,7 @@ class TestStudentResponsesAnalyticsBasic(ModuleStoreTestCase):
         self.assertEqual(datarows[3][-1], u'problem_id=content library response1')
 
     def test_problem_with_no_answer(self):
-        self.course = get_course(CourseKey.from_string('edX/graded/2012_Fall'))
         problem_location = Location('edX', 'graded', '2012_Fall', 'problem', 'H2P1')
-
         self.create_student()
         StudentModuleFactory.create(
             course_id=self.course.id,
@@ -723,6 +712,5 @@ class TestStudentResponsesAnalyticsBasic(ModuleStoreTestCase):
             grade=0,
             state=u'{"answer": {"problem_id": "123"}}',
         )
-
         datarows = list(student_responses(self.course))
         self.assertEqual(datarows[0][-1], None)
