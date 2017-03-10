@@ -1018,6 +1018,7 @@ def _process_new_query(course_id, query_incl, query_type, query_id, query_filter
         return StudentQuery(query_type, query_incl, query_id, query_filtering, entity_name)
 
 
+@require_POST
 @ensure_csrf_cookie
 @cache_control(no_cache=True, no_store=True, must_revalidate=True)
 @require_level('staff')
@@ -1043,6 +1044,7 @@ def delete_temp_query_batch(request, course_id):  # pylint: disable=unused-argum
     return JsonResponse(response_payload)
 
 
+@require_POST
 @ensure_csrf_cookie
 @cache_control(no_cache=True, no_store=True, must_revalidate=True)
 @require_level('staff')
@@ -1065,6 +1067,7 @@ def delete_temp_query(request, course_id):  # pylint: disable=unused-argument
     return JsonResponse(response_payload)
 
 
+@require_POST
 @ensure_csrf_cookie
 @cache_control(no_cache=True, no_store=True, must_revalidate=True)
 @require_level('staff')
@@ -1086,6 +1089,7 @@ def delete_saved_query(request, course_id):  # pylint: disable=unused-argument
     return JsonResponse(response_payload)
 
 
+@require_POST
 @ensure_csrf_cookie
 @cache_control(no_cache=True, no_store=True, must_revalidate=True)
 @require_level('staff')
@@ -1200,12 +1204,12 @@ def get_saved_queries(request, course_id):  # pylint: disable=unused-argument
 @ensure_csrf_cookie
 @cache_control(no_cache=True, no_store=True, must_revalidate=True)
 @require_level('staff')
-@require_query_params(existing="Ids of previously issued queries")
+@require_post_params(existing="Ids of previously issued queries")
 def get_all_students(request, course_id, make_csv=False):
     """
     Returns the students for a given set of queries
     """
-    existing = request.GET.get('existing')
+    existing = request.POST.get('existing')
     existing_queries = existing.split(',')
     if len(existing) == 0:
         return JsonResponse({
@@ -1236,10 +1240,11 @@ def get_all_students(request, course_id, make_csv=False):
         return instructor_analytics.csvs.create_csv_response(filename, ['email', 'name'], email_pairs)
 
 
+@require_POST
 @ensure_csrf_cookie
 @cache_control(no_cache=True, no_store=True, must_revalidate=True)
 @require_level('staff')
-@require_query_params(
+@require_post_params(
     filter="Type of filter",
     entityName="Human readable name of entity"
 )
@@ -1252,8 +1257,8 @@ def get_single_query(request, course_id, inclusion, query_type, state_type, stat
             'success': False,
         })
 
-    filtering = request.GET.get('filter')
-    entity_name = request.GET.get('entityName')
+    filtering = request.POST.get('filter')
+    entity_name = request.POST.get('entityName')
     course_id = SlashSeparatedCourseKey.from_deprecated_string(course_id)
     state_type_id = state_type + "/" + state_id
     processed = _process_new_query(course_id, inclusion, query_type, state_type_id, filtering, entity_name)
@@ -1361,6 +1366,7 @@ def list_course_problems(request, course_id):
     return JsonResponse(response_payload)
 
 
+@require_POST
 @ensure_csrf_cookie
 @cache_control(no_cache=True, no_store=True, must_revalidate=True)
 @require_level('staff')
@@ -2975,6 +2981,7 @@ def list_forum_members(request, course_id):
     return JsonResponse(response_payload)
 
 
+@require_POST
 @ensure_csrf_cookie
 @cache_control(no_cache=True, no_store=True, must_revalidate=True)
 @require_level('staff')
@@ -2992,6 +2999,7 @@ def delete_report_download(request, course_id):
     return JsonResponse(message)
 
 
+@require_POST
 @transaction.non_atomic_requests
 @ensure_csrf_cookie
 @cache_control(no_cache=True, no_store=True, must_revalidate=True)
@@ -3018,6 +3026,7 @@ def get_student_forums_usage(request, course_id):
         })
 
 
+@require_POST
 @transaction.non_atomic_requests
 @ensure_csrf_cookie
 @cache_control(no_cache=True, no_store=True, must_revalidate=True)
@@ -3044,6 +3053,7 @@ def get_ora2_responses(request, course_id, include_email):
         })
 
 
+@require_POST
 @transaction.non_atomic_requests
 @ensure_csrf_cookie
 @cache_control(no_cache=True, no_store=True, must_revalidate=True)
@@ -3073,6 +3083,7 @@ def get_course_forums_usage(request, course_id):
 @ensure_csrf_cookie
 @cache_control(no_cache=True, no_store=True, must_revalidate=True)
 @require_level('staff')
+@require_POST
 def graph_course_forums_usage(request, course_id):
     """
     Generate a d3 graphable csv-string by checking the report store for the clicked_on file

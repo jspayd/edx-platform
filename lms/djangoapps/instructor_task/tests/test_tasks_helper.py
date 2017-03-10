@@ -32,23 +32,10 @@ from opaque_keys.edx.locations import Location
 from student.tests.factories import CourseEnrollmentFactory, UserFactory
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 
-from instructor_task.tasks_helper import (
-    cohort_students_and_upload,
-    upload_grades_csv,
-    upload_problem_grade_report,
-    upload_students_csv,
-    push_student_responses_to_s3,
-    push_ora2_responses_to_s3,
-    push_course_forums_data_to_s3,
-    push_student_forums_data_to_s3,
-    UPDATE_STATUS_FAILED,
-    UPDATE_STATUS_SUCCEEDED,
-)
-
 TEST_COURSE_ORG = 'edx'
 TEST_COURSE_NAME = 'test_course'
 TEST_COURSE_NUMBER = '1.23x'
-from instructor_task.models import ReportStore
+from lms.djangoapps.instructor_task.models import ReportStore
 from student.models import CourseEnrollment
 
 from capa.tests.response_xml_factory import MultipleChoiceResponseXMLFactory
@@ -80,6 +67,10 @@ from xmodule.partitions.partitions import Group, UserPartition
 from lms.djangoapps.instructor_task.models import ReportStore
 from survey.models import SurveyForm, SurveyAnswer
 from lms.djangoapps.instructor_task.tasks_helper import (
+    push_student_responses_to_s3,
+    push_ora2_responses_to_s3,
+    push_course_forums_data_to_s3,
+    push_student_forums_data_to_s3,
     cohort_students_and_upload,
     upload_problem_responses_csv,
     upload_grades_csv,
@@ -935,7 +926,7 @@ class TestReportStore(TestReportMixin, InstructorTaskCourseTestCase):
 
         links = report_store.links_for(self.course.id)
         self.assertEquals(len(links), 0)
-        with patch('instructor_task.tasks_helper._get_current_task'):
+        with patch('lms.djangoapps.instructor_task.tasks_helper._get_current_task'):
             upload_students_csv(None, None, self.course.id, task_input, 'calculated')
         links = report_store.links_for(self.course.id)
         self.assertEquals(len(links), 1)
@@ -1285,8 +1276,8 @@ class TestReponsesReport(TestReportMixin, ModuleStoreTestCase):
     """
 
     def test_unicode(self):
-        course_key = CourseKey.from_string('edX/unicode_graded/2012_Fall')
-        self.course = get_course_by_id(course_key)
+        self.course = CourseFactory.create()
+        course_key = self.course.id
         self.problem_location = Location("edX", "unicode_graded", "2012_Fall", "problem", "H1P1")
 
         self.student = UserFactory(username=u'student\xec')
@@ -1322,15 +1313,15 @@ class TestInstructorOra2Report(TestReportMixin, InstructorTaskCourseTestCase):
             shutil.rmtree(settings.ORA2_RESPONSES_DOWNLOAD['ROOT_PATH'])
 
     def test_report_fails_if_error(self):
-        with patch('instructor_task.tasks_helper.collect_anonymous_ora2_data') as mock_collect_data:
+        with patch('lms.djangoapps.instructor_task.tasks_helper.collect_anonymous_ora2_data') as mock_collect_data:
             mock_collect_data.side_effect = KeyError
 
-            with patch('instructor_task.tasks_helper._get_current_task') as mock_current_task:
+            with patch('lms.djangoapps.instructor_task.tasks_helper._get_current_task') as mock_current_task:
                 mock_current_task.return_value = self.current_task
 
                 self.assertEqual(push_ora2_responses_to_s3(None, None, self.course.id, {'include_email': 'False'}, 'generated'), UPDATE_STATUS_FAILED)
 
-    @patch('instructor_task.tasks_helper.datetime')
+    @patch('lms.djangoapps.instructor_task.tasks_helper.datetime')
     def test_report_stores_results(self, mock_time):
         start_time = datetime.now(UTC)
         mock_time.now.return_value = start_time
@@ -1338,13 +1329,13 @@ class TestInstructorOra2Report(TestReportMixin, InstructorTaskCourseTestCase):
         test_header = ['field1', 'field2']
         test_rows = [['row1_field1', 'row1_field2'], ['row2_field1', 'row2_field2']]
 
-        with patch('instructor_task.tasks_helper._get_current_task') as mock_current_task:
+        with patch('lms.djangoapps.instructor_task.tasks_helper._get_current_task') as mock_current_task:
             mock_current_task.return_value = self.current_task
 
-            with patch('instructor_task.tasks_helper.collect_anonymous_ora2_data') as mock_collect_data:
+            with patch('lms.djangoapps.instructor_task.tasks_helper.collect_anonymous_ora2_data') as mock_collect_data:
                 mock_collect_data.return_value = (test_header, test_rows)
 
-                with patch('instructor_task.models.LocalFSReportStore.store_rows') as mock_store_rows:
+                with patch('lms.djangoapps.instructor_task.models.DjangoStorageReportStore.store_rows') as mock_store_rows:
 
                     timestamp_str = start_time.strftime('%Y-%m-%d-%H%M')
                     course_id_string = urllib.quote(self.course.id.to_deprecated_string().replace('/', '_'))
@@ -1372,15 +1363,15 @@ class TestInstructorOra2EmailReport(TestReportMixin, InstructorTaskCourseTestCas
             shutil.rmtree(settings.ORA2_RESPONSES_DOWNLOAD['ROOT_PATH'])
 
     def test_report_fails_if_error(self):
-        with patch('instructor_task.tasks_helper.collect_email_ora2_data') as mock_collect_data:
+        with patch('lms.djangoapps.instructor_task.tasks_helper.collect_email_ora2_data') as mock_collect_data:
             mock_collect_data.side_effect = KeyError
 
-            with patch('instructor_task.tasks_helper._get_current_task') as mock_current_task:
+            with patch('lms.djangoapps.instructor_task.tasks_helper._get_current_task') as mock_current_task:
                 mock_current_task.return_value = self.current_task
 
                 self.assertEqual(push_ora2_responses_to_s3(None, None, self.course.id, {'include_email': 'True'}, 'generated'), UPDATE_STATUS_FAILED)
 
-    @patch('instructor_task.tasks_helper.datetime')
+    @patch('lms.djangoapps.instructor_task.tasks_helper.datetime')
     def test_report_stores_results(self, mock_time):
         start_time = datetime.now(UTC)
         mock_time.now.return_value = start_time
@@ -1388,13 +1379,13 @@ class TestInstructorOra2EmailReport(TestReportMixin, InstructorTaskCourseTestCas
         test_header = ['field1', 'field2']
         test_rows = [['row1_field1', 'row1_field2'], ['row2_field1', 'row2_field2']]
 
-        with patch('instructor_task.tasks_helper._get_current_task') as mock_current_task:
+        with patch('lms.djangoapps.instructor_task.tasks_helper._get_current_task') as mock_current_task:
             mock_current_task.return_value = self.current_task
 
-            with patch('instructor_task.tasks_helper.collect_email_ora2_data') as mock_collect_data:
+            with patch('lms.djangoapps.instructor_task.tasks_helper.collect_email_ora2_data') as mock_collect_data:
                 mock_collect_data.return_value = (test_header, test_rows)
 
-                with patch('instructor_task.models.LocalFSReportStore.store_rows') as mock_store_rows:
+                with patch('lms.djangoapps.instructor_task.models.DjangoStorageReportStore.store_rows') as mock_store_rows:
                     timestamp_str = start_time.strftime('%Y-%m-%d-%H%M')
                     course_id_string = urllib.quote(self.course.id.to_deprecated_string().replace('/', '_'))
                     filename = u'{}_ORA2_responses_including_email_{}.csv'.format(course_id_string, timestamp_str)
@@ -1417,15 +1408,15 @@ class TestInstructorCourseForumsReport(TestReportMixin, InstructorTaskCourseTest
         self.current_task.update_state = Mock()
 
     def test_report_fails_if_error(self):
-        with patch('instructor_task.tasks_helper.collect_course_forums_data') as mock_collect_data:
+        with patch('lms.djangoapps.instructor_task.tasks_helper.collect_course_forums_data') as mock_collect_data:
             mock_collect_data.side_effect = KeyError
 
-            with patch('instructor_task.tasks_helper._get_current_task') as mock_current_task:
+            with patch('lms.djangoapps.instructor_task.tasks_helper._get_current_task') as mock_current_task:
                 mock_current_task.return_value = self.current_task
 
                 self.assertEqual(push_course_forums_data_to_s3(None, None, self.course.id, None, 'generated'), UPDATE_STATUS_FAILED)
 
-    @patch('instructor_task.tasks_helper.datetime')
+    @patch('lms.djangoapps.instructor_task.tasks_helper.datetime')
     def test_report_stores_results(self, mock_time):
         start_time = datetime.now(UTC)
         mock_time.now.return_value = start_time
@@ -1433,13 +1424,13 @@ class TestInstructorCourseForumsReport(TestReportMixin, InstructorTaskCourseTest
         test_header = ['Date', 'Type', 'Number', 'Up Votes', 'Down Votes', 'Net Points']
         test_rows = [['row1_field1', 'row1_field2'], ['row2_field1', 'row2_field2']]
 
-        with patch('instructor_task.tasks_helper._get_current_task') as mock_current_task:
+        with patch('lms.djangoapps.instructor_task.tasks_helper._get_current_task') as mock_current_task:
             mock_current_task.return_value = self.current_task
 
-            with patch('instructor_task.tasks_helper.collect_course_forums_data') as mock_collect_data:
+            with patch('lms.djangoapps.instructor_task.tasks_helper.collect_course_forums_data') as mock_collect_data:
                 mock_collect_data.return_value = (test_header, test_rows)
 
-                with patch('instructor_task.models.LocalFSReportStore.store_rows'):
+                with patch('lms.djangoapps.instructor_task.models.DjangoStorageReportStore.store_rows'):
                     return_val = push_course_forums_data_to_s3(None, None, self.course.id, None, 'generated')
                     self.assertEqual(return_val, UPDATE_STATUS_SUCCEEDED)
 
@@ -1458,15 +1449,15 @@ class TestInstructorStudentForumsReport(TestReportMixin, InstructorTaskCourseTes
         self.current_task.update_state = Mock()
 
     def test_report_fails_if_error(self):
-        with patch('instructor_task.tasks_helper.collect_student_forums_data') as mock_collect_data:
+        with patch('lms.djangoapps.instructor_task.tasks_helper.collect_student_forums_data') as mock_collect_data:
             mock_collect_data.side_effect = KeyError
 
-            with patch('instructor_task.tasks_helper._get_current_task') as mock_current_task:
+            with patch('lms.djangoapps.instructor_task.tasks_helper._get_current_task') as mock_current_task:
                 mock_current_task.return_value = self.current_task
 
                 self.assertEqual(push_student_forums_data_to_s3(None, None, self.course.id, None, 'generated'), UPDATE_STATUS_FAILED)
 
-    @patch('instructor_task.tasks_helper.datetime')
+    @patch('lms.djangoapps.instructor_task.tasks_helper.datetime')
     def test_report_stores_results(self, mock_time):
         start_time = datetime.now(UTC)
         mock_time.now.return_value = start_time
@@ -1474,13 +1465,13 @@ class TestInstructorStudentForumsReport(TestReportMixin, InstructorTaskCourseTes
         test_header = ['Username', 'Posts', 'Votes']
         test_rows = [['row1_field1', 'row1_field2', 'row1_field3'], ['row2_field1', 'row2_field2', 'row2_field3']]
 
-        with patch('instructor_task.tasks_helper._get_current_task') as mock_current_task:
+        with patch('lms.djangoapps.instructor_task.tasks_helper._get_current_task') as mock_current_task:
             mock_current_task.return_value = self.current_task
 
-            with patch('instructor_task.tasks_helper.collect_student_forums_data') as mock_collect_data:
+            with patch('lms.djangoapps.instructor_task.tasks_helper.collect_student_forums_data') as mock_collect_data:
                 mock_collect_data.return_value = (test_header, test_rows)
 
-                with patch('instructor_task.models.LocalFSReportStore.store_rows'):
+                with patch('lms.djangoapps.instructor_task.models.DjangoStorageReportStore.store_rows'):
                     return_val = push_student_forums_data_to_s3(None, None, self.course.id, None, 'generated')
                     self.assertEqual(return_val, UPDATE_STATUS_SUCCEEDED)
 
@@ -2036,7 +2027,7 @@ class TestCertificateGeneration(InstructorTaskModuleTestCase):
             'failed': 3,
             'skipped': 2
         }
-        with self.assertNumQueries(254):
+        with self.assertNumQueries(177):
             self.assertCertificatesGenerated(task_input, expected_results)
 
         expected_results = {
@@ -2047,7 +2038,7 @@ class TestCertificateGeneration(InstructorTaskModuleTestCase):
             'failed': 0,
             'skipped': 10
         }
-        with self.assertNumQueries(3):
+        with self.assertNumQueries(14):
             self.assertCertificatesGenerated(task_input, expected_results)
 
     @ddt.data(
