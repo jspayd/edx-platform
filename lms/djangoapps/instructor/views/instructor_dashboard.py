@@ -38,7 +38,6 @@ from openedx.core.djangoapps.course_groups.cohorts import get_course_cohorts, is
 from student.models import CourseEnrollment
 from shoppingcart.models import Coupon, PaidCourseRegistration, CourseRegCodeItem
 from course_modes.models import CourseMode, CourseModesArchive
-from instructor_email_widget.models import GroupedQuery
 from student.roles import CourseFinanceAdminRole, CourseSalesAdminRole
 from certificates.models import (
     CertificateGenerationConfiguration,
@@ -51,7 +50,6 @@ from certificates.models import (
 from certificates import api as certs_api
 from bulk_email.models import BulkEmailFlag
 
-from bulk_email.models import CourseEmail
 from class_dashboard.dashboard_data import get_section_display_name, get_array_section_has_problem
 from .tools import get_units_with_due_date, title_or_url
 from opaque_keys.edx.locations import SlashSeparatedCourseKey
@@ -648,11 +646,6 @@ def null_applicable_aside_types(block):  # pylint: disable=unused-argument
 def _section_send_email(course, access):
     """ Provide data for the corresponding bulk email section """
     course_key = course.id
-    queries = GroupedQuery.objects.filter(course_id=course_key)
-    query_options = tuple(
-        (query.id, query.title or u'Query saved at ' + query.created.strftime("%m-%d-%y %H:%M"))
-        for query in queries
-    )
 
     # Monkey-patch applicable_aside_types to return no asides for the duration of this render
     with patch.object(course.runtime, 'applicable_aside_types', null_applicable_aside_types):
@@ -680,7 +673,6 @@ def _section_send_email(course, access):
         'section_display_name': _('Email'),
         'keywords_supported': get_keywords_supported(),
         'access': access,
-        'to_options': query_options,
         'send_email': reverse('send_email', kwargs={'course_id': unicode(course_key)}),
         'editor': email_editor,
         'cohorts': cohorts,
