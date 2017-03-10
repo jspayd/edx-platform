@@ -1182,6 +1182,7 @@ class TestHtmlModifiers(ModuleStoreTestCase):
     def setUp(self):
         super(TestHtmlModifiers, self).setUp()
         self.course = CourseFactory.create()
+        self.user = UserFactory.create()
         self.request = RequestFactory().get('/')
         self.request.user = self.user
         self.request.session = {}
