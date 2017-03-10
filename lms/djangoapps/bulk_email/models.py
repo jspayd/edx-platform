@@ -12,7 +12,6 @@ from openedx.core.djangoapps.course_groups.cohorts import get_cohort_by_name
 from openedx.core.lib.html_to_text import html_to_text
 from openedx.core.lib.mail_utils import wrap_message
 
-from instructor_email_widget.models import GroupedQuery
 from config_models.models import ConfigurationModel
 from student.roles import CourseStaffRole, CourseInstructorRole
 
@@ -193,15 +192,7 @@ class CourseEmail(Email):
             # split target, to handle cohort:cohort_name
             target_split = target.split(':', 1)
             # Ensure our desired target exists
-            if target.isdigit():
-                if not GroupedQuery.objects.filter(id=int(target)).exists():
-                    message = "Course email for '{course}' being sent to query id that does not exist: {query_id}, subject '{subject}'".format(
-                        course=course_id,
-                        query_id=target,
-                        subject=subject,
-                    )
-                    raise ValueError(message)
-            elif target_split[0] not in EMAIL_TARGETS:
+            if target_split[0] not in EMAIL_TARGETS:
                 fmt = 'Course email being sent to unrecognized target: "{target}" for "{course}", subject "{subject}"'
                 msg = fmt.format(target=target, course=course_id, subject=subject)
                 raise ValueError(msg)

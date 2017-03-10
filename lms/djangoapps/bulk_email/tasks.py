@@ -40,8 +40,6 @@ from bulk_email.models import CourseEmail, Optout
 from courseware.courses import get_course
 from openedx.core.lib.courses import course_image_url
 
-from instructor.views.data_access import delete_group_temp_queries_and_students # <- Stanford Fork
-
 from lms.djangoapps.instructor_task.models import InstructorTask
 from lms.djangoapps.instructor_task.subtasks import (
     SubtaskStatus,
@@ -228,10 +226,6 @@ def perform_delegate_email_batches(entry_id, course_id, task_input, action_name)
         settings.BULK_EMAIL_EMAILS_PER_TASK,
         total_recipients,
     )
-
-    # Cleanup for bulk email to saved queries
-    if to_option.isdigit():
-        delete_group_temp_queries_and_students(int(to_option))
 
     # We want to return progress here, as this is what will be stored in the
     # AsyncResult for the parent task as its return value.
