@@ -14,6 +14,7 @@ from lms.djangoapps.courseware.field_overrides import OverrideFieldData, Overrid
 from openedx.core.djangoapps.self_paced.models import SelfPacedConfiguration
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory
+from student.models import UserProfile
 
 
 @override_settings(
@@ -32,6 +33,11 @@ class SelfPacedDateOverrideTest(ModuleStoreTestCase):
         SelfPacedConfiguration(enabled=True).save()
 
         self.non_staff_user, __ = self.create_non_staff_user()
+
+        # create a UserProfile for user so user doesn't look like sneak_peek user
+        nonstaff_user_profile = UserProfile(user=self.non_staff_user)
+        nonstaff_user_profile.save()
+
         self.now = datetime.datetime.now(pytz.UTC).replace(microsecond=0)
         self.future = self.now + datetime.timedelta(days=30)
 

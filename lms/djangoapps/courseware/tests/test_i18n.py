@@ -60,8 +60,7 @@ class BaseI18nTestCase(TestCase):
         """
         # Create one user and save it to the database
         email = 'test@edx.org'
-        self.user = UserFactory.build(username='test', email=email, password=self.pwd)
-        self.user.save()
+        self.user = UserFactory.create(username='test', email=email, password=self.pwd)
 
     def user_login(self):
         """
