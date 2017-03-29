@@ -11,6 +11,7 @@ from django.db import IntegrityError
 
 from django.contrib.auth.models import User
 from django.conf import settings
+from django.test import TestCase
 
 from student.tests.factories import UserFactory
 
@@ -20,7 +21,7 @@ from django_comment_client.management_utils import get_mongo_connection_string
 MONGO_PARAMS = settings.FORUM_MONGO_PARAMS
 
 
-class TestManagementUtils(unittest.TestCase):
+class TestManagementUtils(TestCase):
     """
     These tests can be run from the terminal using the following command:
     python ./manage.py lms test --verbosity=1 lms/djangoapps/django_comment_client/tests/test_management_utils.py  --traceback --settings=test
