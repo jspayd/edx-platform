@@ -478,11 +478,9 @@ class TestCmeRegistration(UrlResetMixin, TestCase):
         response = self.client.post(url, {})
         self.assertEqual(response.status_code, 200)
 
+    @patch.dict(settings.FEATURES, {'REROUTE_ACTIVATION_EMAIL': 'a@b.edu'})
     @unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Run only in LMS')
     def test_reroute_activation_email(self):
-
-        settings.FEATURES['REROUTE_ACTIVATION_EMAIL'] = 'a@b.edu'
-
         url = reverse('create_account')
         response = self.client.post(url, self.post_vars)
 
