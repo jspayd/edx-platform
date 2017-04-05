@@ -351,7 +351,7 @@ class OpenIdProviderTest(TestCase):
     @skipUnless(
         settings.FEATURES.get('AUTH_USE_OPENID_PROVIDER'), 'OpenID not enabled')
     def test_provider_login_can_handle_unicode_email_inactive_account(self):
-        user = UserFactory(email=u"user.ąęł@gmail.com", username=u"ąęół")
+        user = UserFactory(email=u"user.ąęł@gmail.com")
         url = reverse('openid-provider-login')
 
         # login to the client so that we can persist session information
