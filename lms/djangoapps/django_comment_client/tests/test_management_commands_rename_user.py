@@ -128,4 +128,3 @@ class TestManagementCommandsRenameUser(unittest.TestCase):
         """
         self.db.users.remove({"_id": self.mongo_user_id})
         self.db.contents.remove({"_id": self.mongo_comment_id})
-        User.objects.all().delete()

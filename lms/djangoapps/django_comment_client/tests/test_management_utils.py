@@ -240,4 +240,3 @@ class TestManagementUtils(unittest.TestCase):
             self.db.users.remove({"_id": user_id})
         for comment_id in self.mongo_comment_ids:
             self.db.contents.remove({"_id": comment_id})
-        User.objects.all().delete()
