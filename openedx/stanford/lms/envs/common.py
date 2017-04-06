@@ -7,6 +7,7 @@ ANONYMOUS_USER_EMAIL = 'noreply@example.com'
 API_DATE_FORMAT = '%Y-%m-%d'
 COURSE_FORUMS_DOWNLOAD_ROUTING_KEY = HIGH_MEM_QUEUE
 COURSE_MODE_DEFAULTS = {
+    'bulk_sku': None,
     'currency': 'usd',
     'description': None,
     'expiration_datetime': None,
