@@ -127,6 +127,7 @@ class CourseMode(models.Model):
         settings.COURSE_MODE_DEFAULTS['expiration_datetime'],
         settings.COURSE_MODE_DEFAULTS['description'],
         settings.COURSE_MODE_DEFAULTS['sku'],
+        settings.COURSE_MODE_DEFAULTS['bulk_sku'],
     )
     DEFAULT_MODE_SLUG = settings.COURSE_MODE_DEFAULTS["slug"]
 
