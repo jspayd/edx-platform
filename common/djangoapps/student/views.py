@@ -1397,7 +1397,7 @@ def login_user(request, error=""):  # pylint: disable=too-many-statements,unused
     user_found_by_email_lookup = user
     if user_found_by_email_lookup and LoginFailures.is_feature_enabled():
         if LoginFailures.is_user_locked_out(user_found_by_email_lookup):
-            lockout_message = ngettext(
+            lockout_message = ungettext(
                 "This account has been temporarily locked due to excessive login failures. "
                 "Try again in {minutes} minute.  For security reasons, "
                 "resetting the password will NOT lift the lockout. Please wait for {minutes} minute.",
