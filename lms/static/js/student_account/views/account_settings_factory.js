@@ -10,14 +10,14 @@
     ], function(gettext, $, _, Backbone, Logger, UserAccountModel, UserPreferencesModel,
                  AccountSettingsFieldViews, AccountSettingsView, StringUtils) {
         return function(
+            isShibAuth,
             fieldsData,
             ordersHistoryData,
             authData,
             userAccountsApiUrl,
             userPreferencesApiUrl,
             accountUserId,
-            platformName,
-            isShibAuth
+            platformName
         ) {
             var accountSettingsElement, userAccountModel, userPreferencesModel, aboutSectionsData,
                 accountsSectionData, ordersSectionData, accountSettingsView, showAccountSettingsPage,
