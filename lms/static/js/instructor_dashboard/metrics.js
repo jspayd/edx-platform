@@ -8,7 +8,11 @@
             this.$section.data('wrapper', this);
         }
 
-        metrics.prototype.onClickTitle = function() {};
+        metrics.prototype.onClickTitle = function() {
+            loadGraphs();
+            $('#graph_reload').show();
+            $('.metrics-header-container').show();
+        };
 
         return metrics;
     }());
