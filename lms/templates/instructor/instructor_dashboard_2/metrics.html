@@ -5,17 +5,17 @@ from django.template.defaultfilters import escapejs
 
 <%page args="section_data"/>
 
-<script>
-  ${d3_stacked_bar_graph.body()}
-  ${metrics_click_handlers.body(section_data)}
-</script>
-
 %if not any (section_data.values()):
   <p>${_("There is no data available to display at this time.")}</p>
 %else:
   <%namespace name="d3_stacked_bar_graph" file="/class_dashboard/d3_stacked_bar_graph.js"/>
   <%namespace name="all_section_metrics" file="/class_dashboard/all_section_metrics.js"/>
   <%namespace name='metrics_click_handlers' file='/class_dashboard/metrics_click_handlers.js'/>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+  <script>
+    ${d3_stacked_bar_graph.body()}
+    ${metrics_click_handlers.body(section_data)}
+  </script>
   <div id="graph_reload">
     <p>${_("Use Reload Graphs to refresh the graphs.")}</p>
     <p><input type="button" value="${_("Reload Graphs")}"/></p>
@@ -66,7 +66,6 @@ from django.template.defaultfilters import escapejs
   %endfor
   <script>
     $(function () {
-      var firstLoad = true;
       var allSubsectionTooltipArr = new Array();
       var allProblemTooltipArr = new Array();
 
@@ -221,15 +220,6 @@ from django.template.defaultfilters import escapejs
         form.submit();
       }
 
-      $('.instructor-nav a').click(function () {
-        if ($(this).data('section') === "metrics" && firstLoad) {
-          loadGraphs();
-          firstLoad = false;
-          $('#graph_reload').show();
-          $('.metrics-header-container').show();
-        }
-      });
-
       $('#graph_reload').click(function () {
         loadGraphs();
         $('#graph_reload').show();
@@ -242,17 +232,6 @@ from django.template.defaultfilters import escapejs
 
       $('#download_problem_data').click(function() {
         download_csv_data({'type': 'problem'});
-      });
-
-      if (window.location.hash === "#view-metrics") {
-        $('.instructor-nav [data-section="metrics"]').click();
-        $('#graph_reload').hide();
-        $('.metrics-header-container').hide();
-      }
-
-      $(document).ajaxStop(function() {
-          $('#graph_reload').show();
-          $('.metrics-header-container').show();
       });
 
     });
