@@ -21,7 +21,7 @@ class ResetButtonTestCase(unittest.TestCase):
             'answer_notification_message': '',
             'attempts_allowed': 2,
             'attempts_used': 0,
-            'check_button': u'Submit',
+            'submit_button': u'Submit',
             'demand_hint_possible': False,
             'end_time_to_display': None,
             'id': u'1',
