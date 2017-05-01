@@ -1643,7 +1643,7 @@ class CapaModuleTest(unittest.TestCase):
                 "problem_is_timed": True,
                 "problem_has_finished": False,
                 "end_time": datetime.datetime.now(UTC) + datetime.timedelta(minutes=5),
-                "check_button": module.check_button_name(),
+                "submit_button": module.submit_button_name(),
             }
         )
 
@@ -1658,7 +1658,7 @@ class CapaModuleTest(unittest.TestCase):
         rendered = module.start_problem()
 
         self.assertIsNotNone(module.time_started)
-        self.assertTrue(module.should_show_check_button())
+        self.assertTrue(module.should_show_submit_button())
         self.assertFalse(module.closed())
 
     def test_time_expired(self):
@@ -1696,7 +1696,7 @@ class CapaModuleTest(unittest.TestCase):
                 get_request_dict = {CapaFactory.answer_key(): '3'}
                 results = module.check_problem(get_request_dict)
                 self.assertFalse(module.should_show_reset_button())
-                self.assertFalse(module.should_show_check_button())
+                self.assertFalse(module.should_show_submit_button())
 
     def test_timed_save(self):
         """
