@@ -79,6 +79,7 @@ from social.exceptions import AuthException
 from social.pipeline import partial
 from social.pipeline.social_auth import associate_by_email
 
+from student.views import login_user
 import student
 
 from logging import getLogger
@@ -533,7 +534,7 @@ def ensure_user_information(strategy, auth_entry, backend=None, user=None, socia
             # account corresponds to them yet, if any.
             if should_force_account_creation():
                 return dispatch_to_register()
-            return dispatch_to_login()
+            login_user(strategy.request)
         elif auth_entry == AUTH_ENTRY_REGISTER:
             # User has authenticated with the third party provider and now wants to finish
             # creating their edX account.

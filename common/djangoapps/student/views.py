@@ -1266,30 +1266,40 @@ def login_user(request, error=""):  # pylint: disable=too-many-statements,unused
                 "with backend_name {backend_name}".format(
                     username=username, backend_name=backend_name)
             )
-            message = _(
-                "You've successfully logged into your {provider_name} account, "
-                "but this account isn't linked with an {platform_name} account yet."
-            ).format(
-                platform_name=platform_name,
-                provider_name=requested_provider.name,
-            )
-            message += "<br/><br/>"
-            message += _(
-                "Use your {platform_name} username and password to log into {platform_name} below, "
-                "and then link your {platform_name} account with {provider_name} from your dashboard."
-            ).format(
-                platform_name=platform_name,
-                provider_name=requested_provider.name,
-            )
-            message += "<br/><br/>"
-            message += _(
-                "If you don't have an {platform_name} account yet, "
-                "click <strong>Register</strong> at the top of the page."
-            ).format(
-                platform_name=platform_name
-            )
 
-            return HttpResponse(message, content_type="text/plain", status=403)
+            # Convert old shib accounts
+            email = running_pipeline['kwargs']['details'].get('email')
+            try:
+                user = User.objects.get(email=email)
+                third_party_auth_successful = True
+            except User.DoesNotExist:
+                AUDIT_LOG.warning(u"No existing user with email: {0}".format(email))
+
+            if not user:
+                message = _(
+                    "You've successfully logged into your {provider_name} account, "
+                    "but this account isn't linked with an {platform_name} account yet."
+                ).format(
+                    platform_name=platform_name,
+                    provider_name=requested_provider.name,
+                )
+                message += "<br/><br/>"
+                message += _(
+                    "Use your {platform_name} username and password to log into {platform_name} below, "
+                    "and then link your {platform_name} account with {provider_name} from your dashboard."
+                ).format(
+                    platform_name=platform_name,
+                    provider_name=requested_provider.name,
+                )
+                message += "<br/><br/>"
+                message += _(
+                    "If you don't have an {platform_name} account yet, "
+                    "click <strong>Register</strong> at the top of the page."
+                ).format(
+                    platform_name=platform_name
+                )
+
+                return HttpResponse(message, content_type="text/plain", status=403)
 
     else:
 
