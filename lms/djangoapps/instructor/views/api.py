@@ -3096,6 +3096,7 @@ def graph_course_forums_usage(request, course_id):
     if clicked_text:
         for name, url in report_store.links_for(course_key):
             if clicked_text in name and 'course_forums' in name:
+                url = settings.LMS_ROOT_URL + url
                 request = urllib2.Request(url)
                 request.add_header('Accept-encoding', 'gzip')
                 url_handle = urllib2.urlopen(request)
