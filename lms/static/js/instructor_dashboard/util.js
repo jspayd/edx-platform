@@ -476,7 +476,7 @@
 
         ReportDownloads.prototype.create_report_downloads_table = function(reportDownloadsData) {
             var $tablePlaceholder, columns, grid, options;
-            var that = this;
+            var ths = this;
             this.$report_downloads_table.empty();
             options = {
                 enableCellNavigation: true,
@@ -551,13 +551,13 @@
                 file_to_delete = filename_cell.text();
                 if (confirm(gettext('Are you sure you want to delete the file ' + file_to_delete + '? This cannot be undone.'))) {
                     function successCallback() {
-                        that.remove_row_from_ui(table_row);
-                        that.display_file_delete_success(file_to_delete);
+                        ths.remove_row_from_ui(table_row);
+                        ths.display_file_delete_success(file_to_delete);
                     };
                     function failureCallback() {
-                        that.display_file_delete_failure(file_to_delete);
+                        ths.display_file_delete_failure(file_to_delete);
                     };
-                    that.delete_report(file_to_delete, successCallback, failureCallback);
+                    ths.delete_report(file_to_delete, successCallback, failureCallback);
                 }
             });
 
@@ -567,46 +567,42 @@
             return grid.autosizeColumns();
         };
 
-        ReportDownloads.prototype.get_forum_csv = function(cb) {
-            var ths = this;
+        ReportDownloads.prototype.get_forum_csv = function(callback) {
+            var that = this;
             return $.ajax({
                 dataType: 'json',
-                url: ths.$graph_endpoint,
+                url: that.$graph_endpoint,
                 type: 'POST',
                 data: {
-                    "clicked_on": ths.$clicked_name
+                    "clicked_on": that.$clicked_name
                 },
                 success: function(data) {
-                    return typeof cb === "function" ? cb(null, data) : void 0;
+                    return typeof callback === "function" ? callback(null, data) : void 0;
                 },
-                error: (function(ths) {
-                    return function(std_ajax_err) {
-                        return typeof cb === "function" ? cb(gettext('Error getting forum csv')) : void 0;
-                    };
-                })(this)
+                error: function(std_ajax_err) {
+                    return typeof callback === "function" ? callback(gettext('Error getting forum csv')) : void 0;
+                }
             });
         }
         ReportDownloads.prototype.graph_forums = function(graphEndpoint) {
-            var ths = this;
-            return ths.get_forum_csv((function(ths) {
-                return function(error, forums) {
-                    var data, error_str, file_name, graph_classname;
-                    if (error) {
-                        return ths.show_graph_errors(error);
-                    }
-                    data = forums['data'];
-                    file_name = forums['filename'];
-                    graph_classname = "report-downloads-graph";
-                    if (data === 'failure') {
-                        error_str = "No Data To Graph. The file might have expired; please refresh and try again";
-                        $(".report-downloads-graph-title").html(error_str);
-                        $("." + graph_classname).html("");
-                        return 'No data to Graph';
-                    }
-                    $(".report-downloads-graph-title").html(file_name);
-                    return d3_graph_data_download(data, "report-downloads-graph");
-                };
-            })(this));
+            var that = this;
+            return this.get_forum_csv(function(error, forums) {
+                var data, error_str, file_name, graph_classname;
+                if (error) {
+                    return that.show_graph_errors(error);
+                }
+                data = forums['data'];
+                file_name = forums['filename'];
+                graph_classname = "report-downloads-graph";
+                if (data === 'failure') {
+                    error_str = "No Data To Graph. The file might have expired; please refresh and try again";
+                    $(".report-downloads-graph-title").html(error_str);
+                    $("." + graph_classname).html("");
+                    return 'No data to Graph';
+                }
+                $(".report-downloads-graph-title").html(file_name);
+                return d3_graph_data_download(data, "report-downloads-graph");
+            });
         },
         ReportDownloads.prototype.show_graph_errors = function(msg) {
             var ref;
