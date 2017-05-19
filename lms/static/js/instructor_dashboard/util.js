@@ -444,6 +444,10 @@
                 reportdownloads = this;
             this.$section = $section;
             this.$report_downloads_table = this.$section.find('.report-downloads-table');
+            var reports = this.$section.find('.reports-download-container');
+            this.$reports_request_response = reports.find('.request-response');
+            this.$reports_request_response_error = reports.find('.request-response-error');
+            this.$delete_endpoint = $('.report-downloads-delete').data('endpoint');
             POLL_INTERVAL = 20000;
             this.downloads_poller = new InstructorDashboard.util.IntervalManager(POLL_INTERVAL, function() {
                 return reportdownloads.reload_report_downloads();
@@ -470,11 +474,12 @@
 
         ReportDownloads.prototype.create_report_downloads_table = function(reportDownloadsData) {
             var $tablePlaceholder, columns, grid, options;
-            this.$report_downloads_table.empty();
+            var ths = this;
+            ths.$report_downloads_table.empty();
             options = {
                 enableCellNavigation: true,
                 enableColumnReorder: false,
-                rowHeight: 30,
+                rowHeight: 50,
                 forceFitColumns: true
             };
             columns = [
@@ -488,9 +493,26 @@
                     cssClass: 'file-download-link',
                     formatter: function(row, cell, value, columnDef, dataContext) {
                         return edx.HtmlUtils.joinHtml(edx.HtmlUtils.HTML(
-                            '<a target="_blank" href="'), dataContext.url,
+                            '<a class="report-link" target="_blank" href="'), dataContext.url,
                             edx.HtmlUtils.HTML('">'), dataContext.name,
                             edx.HtmlUtils.HTML('</a>'));
+                    }
+                },
+                {
+                    id: 'actions',
+                    field: 'actions',
+                    name: gettext('Actions'),
+                    toolTip: gettext('Row actions are found here: ie. Deletion.'),
+                    sortable: false,
+                    maxWidth: 100,
+                    cssClass: 'file-actions',
+                    formatter: function(row, cell, value, columnDef, dataContext) {
+                        var delete_button, graph_button;
+                        delete_button = edx.HtmlUtils.HTML('<a class="delete-report"><i class="fa fa-times-circle"></i>Delete</a>');
+                        if (dataContext['name'].indexOf("course_forums") > -1) {
+                            graph_button = edx.HtmlUtils.HTML('<a class="graph-forums"><i class="fa fa-bar-chart"></i>Graph This</a>');
+                        }
+                        return edx.HtmlUtils.joinHtml(delete_button, graph_button);
                     }
                 }
             ];
@@ -511,7 +533,72 @@
                     report_url: reportUrl
                 });
             });
+
+            $('#report-downloads-table .delete-report').click(function() {
+                var failure_cb, file_to_delete, filename_cell, success_cb, table_row;
+                table_row = $(this).parent().parent();
+                filename_cell = table_row.find('.report-link');
+                file_to_delete = filename_cell.text();
+                if (confirm(gettext('Are you sure you want to delete the file ' + file_to_delete + '? This cannot be undone.'))) {
+                    success_cb = function() {
+                        ths.remove_row_from_ui(table_row);
+                        ths.display_file_delete_success(file_to_delete);
+                    };
+                    failure_cb = function() {
+                        ths.display_file_delete_failure(file_to_delete);
+                    };
+                    ths.delete_report(file_to_delete, success_cb, failure_cb);
+                }
+            });
+
+            this.$reports_request_response.hide();
+            this.$reports_request_response_error.hide();
+
             return grid.autosizeColumns();
+        };
+
+        ReportDownloads.prototype.remove_row_from_ui = function(row) {
+            var currX, currY, i, len, results, row_height, rows_after, sib_row;
+            row_height = row.height();
+            rows_after = row.nextAll();
+            row.remove();
+            results = [];
+            for (i = 0, len = rows_after.length; i < len; i++) {
+                sib_row = $(rows_after[i]);
+                currX = sib_row.offset().left;
+                currY = sib_row.offset().top;
+                results.push(sib_row.offset({
+                    top: currY - row_height,
+                    left: currX
+                }));
+            }
+            return results;
+        };
+        ReportDownloads.prototype.display_file_delete_success = function(file_to_delete) {
+            this.$reports_request_response.text(gettext('The file ' + file_to_delete + ' was successfully deleted.'));
+            this.$reports_request_response.show();
+        };
+        ReportDownloads.prototype.display_file_delete_failure = function(file_to_delete) {
+            this.$reports_request_response_error.text(gettext('Error deleting the file ' + file_to_delete + '. Please try again.'));
+            this.$reports_request_response_error.show();
+        };
+        ReportDownloads.prototype.delete_report = function(file_to_delete, success_cb, failure_cb) {
+            return $.ajax({
+                url: this.$delete_endpoint,
+                type: 'POST',
+                data: {
+                    'filename': file_to_delete
+                },
+                dataType: 'json',
+                success: function(data) {
+                    return success_cb();
+                },
+                error: (function(_this) {
+                    return function(std_ajax_err) {
+                        return failure_cb();
+                    };
+                })(this)
+            });
         };
 
         return ReportDownloads;

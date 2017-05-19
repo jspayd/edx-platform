@@ -1,56 +1,55 @@
 .instructor-dashboard-wrapper-2 {
-  .file-download-link a.report-link {
-    display:inline-block;
-    width: 100%;
-    box-sizing: border-box;
-    padding-right: 200px;
-  }
-}
+  section.idash-section#data_download{
+    .slickgrid {
+      overflow-x: auto !important;
+    }
+    .file-download-link, .file-actions {
+      display: table-cell;
 
-.instructor-dashboard-wrapper-2 section.idash-section#data_download {
-  .reports-download-container {
-    .delete-report, .graph-forums {
-      position: absolute;
-      top: 0;
-      padding-bottom: 25px;
-      color: $blue;
-      cursor: pointer;
+      .report-link,
+      .delete-report,
+      .graph-forums {
+        display: block;
+        clear: both;
+        padding: 5px 5px 0 5px;
+        color: $blue;
+        cursor: pointer;
+        text-decoration: underline;
 
-      i {
-        padding-right: 5px;
+        &:hover {
+          text-decoration: none;
+        }
+
+        .fa {
+          width: 16px;
+          padding-right: 5px;
+        }
       }
     }
-    .delete-report {
-      right: 0;
-      margin-right: 10px;
+    .report-downloads-graph-block {
+      width:100%;
     }
-    .graph-forums{
-      right: 85px;
+    .report-downloads-graph-title {
+      text-align:center;
+      margin: 0 auto;
     }
-  }
-  .report-downloads-graph-block {
-    width:100%;
-  }
-  .report-downloads-graph-title {
-    text-align:center;
-    margin: 0 auto;
-  }
-  .report-downloads-graph {
-    width:100%;
-    margin-left: auto ;
-    margin-right: auto ;
-    font: 10px sans-serif;
-    .axis path,
-    .axis line {
-      fill: none;
-      stroke: #000;
-      shape-rendering: crispEdges;
-    }
-    .bar {
-      fill: steelblue;
-    }
-    .x.axis path {
-      display: none;
+    .report-downloads-graph {
+      width:100%;
+      margin-left: auto ;
+      margin-right: auto ;
+      font: 10px sans-serif;
+      .axis path,
+      .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+      }
+      .bar {
+        fill: steelblue;
+      }
+      .x.axis path {
+        display: none;
+      }
     }
   }
 }
