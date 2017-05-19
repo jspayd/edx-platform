@@ -474,8 +474,8 @@
 
         ReportDownloads.prototype.create_report_downloads_table = function(reportDownloadsData) {
             var $tablePlaceholder, columns, grid, options;
-            var ths = this;
-            ths.$report_downloads_table.empty();
+            var that = this;
+            this.$report_downloads_table.empty();
             options = {
                 enableCellNavigation: true,
                 enableColumnReorder: false,
@@ -535,19 +535,19 @@
             });
 
             $('#report-downloads-table .delete-report').click(function() {
-                var failure_cb, file_to_delete, filename_cell, success_cb, table_row;
+                var file_to_delete, filename_cell, table_row;
                 table_row = $(this).parent().parent();
                 filename_cell = table_row.find('.report-link');
                 file_to_delete = filename_cell.text();
                 if (confirm(gettext('Are you sure you want to delete the file ' + file_to_delete + '? This cannot be undone.'))) {
-                    success_cb = function() {
-                        ths.remove_row_from_ui(table_row);
-                        ths.display_file_delete_success(file_to_delete);
+                    function successCallback() {
+                        that.remove_row_from_ui(table_row);
+                        that.display_file_delete_success(file_to_delete);
                     };
-                    failure_cb = function() {
-                        ths.display_file_delete_failure(file_to_delete);
+                    function failureCallback() {
+                        that.display_file_delete_failure(file_to_delete);
                     };
-                    ths.delete_report(file_to_delete, success_cb, failure_cb);
+                    that.delete_report(file_to_delete, successCallback, failureCallback);
                 }
             });
 
@@ -582,7 +582,7 @@
             this.$reports_request_response_error.text(gettext('Error deleting the file ' + file_to_delete + '. Please try again.'));
             this.$reports_request_response_error.show();
         };
-        ReportDownloads.prototype.delete_report = function(file_to_delete, success_cb, failure_cb) {
+        ReportDownloads.prototype.delete_report = function(file_to_delete, successCallback, failureCallback) {
             return $.ajax({
                 url: this.$delete_endpoint,
                 type: 'POST',
@@ -591,13 +591,11 @@
                 },
                 dataType: 'json',
                 success: function(data) {
-                    return success_cb();
+                    return successCallback();
                 },
-                error: (function(_this) {
-                    return function(std_ajax_err) {
-                        return failure_cb();
-                    };
-                })(this)
+                error: function(std_ajax_err) {
+                    return failureCallback();
+                }
             });
         };
 
