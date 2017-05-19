@@ -444,6 +444,12 @@
                 reportdownloads = this;
             this.$section = $section;
             this.$report_downloads_table = this.$section.find('.report-downloads-table');
+            var reports = this.$section.find('.reports-download-container');
+            this.$reports_request_response = reports.find('.request-response');
+            this.$reports_request_response_error = reports.find('.request-response-error');
+            this.$delete_endpoint = $('.report-downloads-delete').data('endpoint');
+            this.$graph_endpoint = $(".report-downloads-graph").data('endpoint');
+            this.$clicked_name;
             POLL_INTERVAL = 20000;
             this.downloads_poller = new InstructorDashboard.util.IntervalManager(POLL_INTERVAL, function() {
                 return reportdownloads.reload_report_downloads();
@@ -470,11 +476,12 @@
 
         ReportDownloads.prototype.create_report_downloads_table = function(reportDownloadsData) {
             var $tablePlaceholder, columns, grid, options;
+            var ths = this;
             this.$report_downloads_table.empty();
             options = {
                 enableCellNavigation: true,
                 enableColumnReorder: false,
-                rowHeight: 30,
+                rowHeight: 50,
                 forceFitColumns: true
             };
             columns = [
@@ -488,16 +495,33 @@
                     cssClass: 'file-download-link',
                     formatter: function(row, cell, value, columnDef, dataContext) {
                         return edx.HtmlUtils.joinHtml(edx.HtmlUtils.HTML(
-                            '<a target="_blank" href="'), dataContext.url,
+                            '<a class="report-link" target="_blank" href="'), dataContext.url,
                             edx.HtmlUtils.HTML('">'), dataContext.name,
                             edx.HtmlUtils.HTML('</a>'));
+                    }
+                },
+                {
+                    id: 'actions',
+                    field: 'actions',
+                    name: gettext('Actions'),
+                    toolTip: gettext('Row actions are found here: ie. Deletion.'),
+                    sortable: false,
+                    maxWidth: 100,
+                    cssClass: 'file-actions',
+                    formatter: function(row, cell, value, columnDef, dataContext) {
+                        var delete_button, graph_button;
+                        delete_button = edx.HtmlUtils.HTML('<a class="delete-report"><i class="fa fa-times-circle"></i>Delete</a>');
+                        if (dataContext['name'].indexOf("course_forums") > -1) {
+                            graph_button = edx.HtmlUtils.HTML('<a class="graph-forums"><i class="fa fa-bar-chart"></i>Graph This</a>');
+                        }
+                        return edx.HtmlUtils.joinHtml(delete_button, graph_button);
                     }
                 }
             ];
             $tablePlaceholder = $('<div/>', {
                 class: 'slickgrid'
             });
-            this.$report_downloads_table.append($tablePlaceholder);
+            ths.$report_downloads_table.append($tablePlaceholder);
             grid = new Slick.Grid($tablePlaceholder, reportDownloadsData, columns, options);
             grid.onClick.subscribe(function(event) {
                 var reportUrl;
@@ -511,7 +535,120 @@
                     report_url: reportUrl
                 });
             });
+
+            $(".graph-forums").click(function() {
+                var filename_cell, table_row;
+                table_row = $(this).parent().parent()
+                filename_cell = table_row.find('.report-link');
+                ths.$clicked_name = filename_cell.text();
+                ths.graph_forums();
+            });
+
+            $('#report-downloads-table .delete-report').click(function() {
+                var file_to_delete, filename_cell, table_row;
+                table_row = $(this).parent().parent();
+                filename_cell = table_row.find('.report-link');
+                file_to_delete = filename_cell.text();
+                if (confirm(gettext('Are you sure you want to delete the file ' + file_to_delete + '? This cannot be undone.'))) {
+                    function successCallback() {
+                        ths.remove_row_from_ui(table_row);
+                        ths.display_file_delete_success(file_to_delete);
+                    };
+                    function failureCallback() {
+                        ths.display_file_delete_failure(file_to_delete);
+                    };
+                    ths.delete_report(file_to_delete, successCallback, failureCallback);
+                }
+            });
+
+            ths.$reports_request_response.hide();
+            ths.$reports_request_response_error.hide();
+
             return grid.autosizeColumns();
+        };
+
+        ReportDownloads.prototype.get_forum_csv = function(callback) {
+            var that = this;
+            return $.ajax({
+                dataType: 'json',
+                url: that.$graph_endpoint,
+                type: 'POST',
+                data: {
+                    "clicked_on": that.$clicked_name
+                },
+                success: function(data) {
+                    return typeof callback === "function" ? callback(null, data) : void 0;
+                },
+                error: function(std_ajax_err) {
+                    return typeof callback === "function" ? callback(gettext('Error getting forum csv')) : void 0;
+                }
+            });
+        }
+        ReportDownloads.prototype.graph_forums = function(graphEndpoint) {
+            var that = this;
+            return this.get_forum_csv(function(error, forums) {
+                var data, error_str, file_name, graph_classname;
+                if (error) {
+                    return that.show_graph_errors(error);
+                }
+                data = forums['data'];
+                file_name = forums['filename'];
+                graph_classname = "report-downloads-graph";
+                if (data === 'failure') {
+                    error_str = "No Data To Graph. The file might have expired; please refresh and try again";
+                    $(".report-downloads-graph-title").html(error_str);
+                    $("." + graph_classname).html("");
+                    return 'No data to Graph';
+                }
+                $(".report-downloads-graph-title").html(file_name);
+                return d3_graph_data_download(data, "report-downloads-graph");
+            });
+        },
+        ReportDownloads.prototype.show_graph_errors = function(msg) {
+            var ref;
+            return (ref = this.$error_section) != null ? ref.text(msg) : void 0;
+        }
+
+        ReportDownloads.prototype.remove_row_from_ui = function(row) {
+            var currX, currY, i, len, results, row_height, rows_after, sib_row;
+            row_height = row.height();
+            rows_after = row.nextAll();
+            row.remove();
+            results = [];
+            for (i = 0, len = rows_after.length; i < len; i++) {
+                sib_row = $(rows_after[i]);
+                currX = sib_row.offset().left;
+                currY = sib_row.offset().top;
+                results.push(sib_row.offset({
+                    top: currY - row_height,
+                    left: currX
+                }));
+            }
+            return results;
+        };
+        ReportDownloads.prototype.display_file_delete_success = function(file_to_delete) {
+            this.$reports_request_response.text(gettext('The file ' + file_to_delete + ' was successfully deleted.'));
+            this.$reports_request_response.show();
+        };
+        ReportDownloads.prototype.display_file_delete_failure = function(file_to_delete) {
+            this.$reports_request_response_error.text(gettext('Error deleting the file ' + file_to_delete + '. Please try again.'));
+            this.$reports_request_response_error.show();
+        };
+        ReportDownloads.prototype.delete_report = function(file_to_delete, successCallback, failureCallback) {
+            return $.ajax({
+                url: this.$delete_endpoint,
+                type: 'POST',
+                data: {
+                    'filename': file_to_delete
+                },
+                dataType: 'json',
+                success: function(data) {
+                    return successCallback();
+                },
+                error: function(std_ajax_err) {
+                    return failureCallback();
+                }
+            });
         };
 
         return ReportDownloads;
