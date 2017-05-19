@@ -692,12 +692,12 @@ msgstr "المدرسة الابتدائية"
 #. Translators: 'None' refers to the student's level of education
 #: common/djangoapps/student/models.py
 msgid "No formal education"
-msgstr ""
+msgstr "لا يوجد تعليم رسمي"
 
 #. Translators: 'Other' refers to the student's level of education
 #: common/djangoapps/student/models.py
 msgid "Other education"
-msgstr ""
+msgstr "تعليم آخر"
 
 #: common/djangoapps/student/models.py
 msgid "{platform_name} Honor Code Certificate for {course_name}"
