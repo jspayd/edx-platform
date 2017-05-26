@@ -157,17 +157,6 @@ define(['domReady', 'jquery', 'underscore', 'js/utils/cancel_on_escape', 'js/vie
             CreateLibraryUtils.configureHandlers();
         };
 
-        var showTab = function(tab) {
-            return function(e) {
-                e.preventDefault();
-                $('.courses-tab').toggleClass('active', tab === 'courses');
-                $('.libraries-tab').toggleClass('active', tab === 'libraries');
-
-            // Also toggle this course-related notice shown below the course tab, if it is present:
-                $('.wrapper-creationrights').toggleClass('is-hidden', tab !== 'courses');
-            };
-        };
-
         var onReady = function() {
             $('.new-course-button').bind('click', addNewCourse);
             $('.new-library-button').bind('click', addNewLibrary);
@@ -177,9 +166,6 @@ define(['domReady', 'jquery', 'underscore', 'js/utils/cancel_on_escape', 'js/vie
             }));
 
             $('.action-reload').bind('click', ViewUtils.reload);
-
-            $('#course-index-tabs .courses-tab').bind('click', showTab('courses'));
-            $('#course-index-tabs .libraries-tab').bind('click', showTab('libraries'));
         };
 
         domReady(onReady);

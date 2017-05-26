@@ -103,7 +103,10 @@ from xmodule.tabs import CourseTab, CourseTabList, InvalidTabsException
 
 log = logging.getLogger(__name__)
 
-__all__ = ['course_info_handler', 'course_handler', 'course_listing',
+__all__ = ['course_info_handler',
+           'course_handler',
+           'course_listing',
+           'library_listing',
            'course_info_update_handler', 'course_search_index_handler',
            'course_rerun_handler',
            'settings_handler',
@@ -473,7 +476,6 @@ def course_listing(request):
     """
     courses_iter, in_process_course_actions = get_courses_accessible_to_user(request)
     user = request.user
-    libraries = _accessible_libraries_iter(request.user) if LIBRARIES_ENABLED else []
 
     def format_in_process_course_view(uca):
         """
@@ -496,6 +498,33 @@ def course_listing(request):
             ) if uca.state == CourseRerunUIStateManager.State.FAILED else u''
         }
 
+    courses_iter = _remove_in_process_courses(courses_iter, in_process_course_actions)
+    in_process_course_actions = [format_in_process_course_view(uca) for uca in in_process_course_actions]
+
+    return render_to_response(u'index.html', {
+        u'courses': list(courses_iter),
+        u'in_process_course_actions': in_process_course_actions,
+        u'libraries_enabled': LIBRARIES_ENABLED,
+        u'show_new_library_button': get_library_creator_status(user),
+        u'user': user,
+        u'request_course_creator_url': reverse(u'contentstore.views.request_course_creator'),
+        u'course_creator_status': _get_course_creator_status(user),
+        u'rerun_creator_status': GlobalStaff().has_user(user),
+        u'allow_unicode_course_id': settings.FEATURES.get(u'ALLOW_UNICODE_COURSE_ID', False),
+        u'allow_course_reruns': settings.FEATURES.get(u'ALLOW_COURSE_RERUNS', True),
+    })
+
+
+@login_required
+@ensure_csrf_cookie
+def library_listing(request):
+    """
+    List all libraries available to the logged in user
+    """
+    courses_iter, in_process_course_actions = get_courses_accessible_to_user(request)
+    user = request.user
+    libraries = _accessible_libraries_iter(request.user) if LIBRARIES_ENABLED else []
+
     def format_library_for_view(library):
         """
         Return a dict of the data which the view requires for each library
@@ -512,8 +541,7 @@ def course_listing(request):
     courses_iter = _remove_in_process_courses(courses_iter, in_process_course_actions)
     in_process_course_actions = [format_in_process_course_view(uca) for uca in in_process_course_actions]
 
-    return render_to_response(u'index.html', {
-        u'courses': list(courses_iter),
+    return render_to_response(u'libraries.html', {
         u'in_process_course_actions': in_process_course_actions,
         u'libraries_enabled': LIBRARIES_ENABLED,
         u'libraries': [format_library_for_view(lib) for lib in libraries],

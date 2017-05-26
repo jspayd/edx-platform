@@ -84,6 +84,8 @@ urlpatterns += patterns(
         'course_info_update_handler'
     ),
     url(r'^home/?$', 'course_listing', name='home'),
+    url(r'^courses/?$', 'course_listing', name='courses'),
+    url(r'^libraries/?$', 'library_listing', name='libraries'),
     url(
         r'^course/{}/search_reindex?$'.format(settings.COURSE_KEY_PATTERN),
         'course_search_index_handler',

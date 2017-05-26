@@ -8,7 +8,7 @@ from openedx.core.djangolib.markup import HTML, Text
 <%inherit file="base.html" />
 
 <%def name="online_help_token()"><% return "home" %></%def>
-<%block name="title">${_("{studio_name} Home").format(studio_name=settings.STUDIO_SHORT_NAME)}</%block>
+<%block name="title">${_("{studio_name} Libraries").format(studio_name=settings.STUDIO_SHORT_NAME)}</%block>
 <%block name="bodyclass">is-signedin index view-dashboard</%block>
 
 <%block name="requirejs">
@@ -20,7 +20,7 @@ from openedx.core.djangolib.markup import HTML, Text
 <%block name="content">
 <div class="wrapper-mast wrapper">
   <header class="mast has-actions">
-    <h1 class="page-header">${_("{studio_name} Home").format(studio_name=settings.STUDIO_SHORT_NAME)}</h1>
+    <h1 class="page-header">${_("{studio_name} Libraries").format(studio_name=settings.STUDIO_SHORT_NAME)}</h1>
 
     % if user.is_active:
     <nav class="nav-actions" aria-label="${_('Page Actions')}">
@@ -289,81 +289,10 @@ from openedx.core.djangolib.markup import HTML, Text
       </div>
       %endif
 
-      % if libraries_enabled:
       <ul id="course-index-tabs">
-        <li class="courses-tab active"><a href="/courses">${_("Courses")}</a></li>
-        <li class="libraries-tab"><a href="/libraries">${_("Libraries")}</a></li>
+        <li class="courses-tab"><a href="/courses">${_("Courses")}</a></li>
+        <li class="libraries-tab active"><a href="/libraries">${_("Libraries")}</a></li>
       </ul>
-      % endif
-
-      %if len(courses) > 0:
-      <div class="courses courses-tab active">
-        <ul class="list-courses">
-          %for course_info in sorted(courses, key=lambda s: s['display_name'].lower() if s['display_name'] is not None else ''):
-          <li class="course-item" data-course-key="${course_info['course_key']}">
-            <a class="course-link" href="${course_info['url']}">
-              <h3 class="course-title">${course_info['display_name']}</h3>
-
-              <div class="course-metadata">
-                <span class="course-org metadata-item">
-                  <span class="label">${_("Organization:")}</span> <span class="value">${course_info['org']}</span>
-                </span>
-                <span class="course-num metadata-item">
-                  <span class="label">${_("Course Number:")}</span>
-                  <span class="value">${course_info['number']}</span>
-                </span>
-                <span class="course-run metadata-item">
-                  <span class="label">${_("Course Run:")}</span> <span class="value">${course_info['run']}</span>
-                </span>
-              </div>
-            </a>
-
-            <ul  class="item-actions course-actions">
-              % if allow_course_reruns and rerun_creator_status and course_creator_status=='granted':
-              <li class="action action-rerun">
-                <a href="${course_info['rerun_link']}" class="button rerun-button">${_("Re-run Course")}</a>
-              </li>
-              % endif
-              <li class="action action-view">
-                <a href="${course_info['lms_link']}" rel="external" class="button view-button">${_("View Live")}</a>
-              </li>
-            </ul>
-          </li>
-          %endfor
-        </ul>
-      </div>
-
-      %else:
-      <div class="notice notice-incontext notice-instruction notice-instruction-nocourses list-notices courses-tab active">
-        <div class="notice-item">
-          <div class="msg">
-            <h3 class="title">${_("Are you staff on an existing {studio_name} course?").format(studio_name=settings.STUDIO_SHORT_NAME)}</h3>
-            <div class="copy">
-              <p>${_('The course creator must give you access to the course. Contact the course creator or administrator for the course you are helping to author.')}</p>
-            </div>
-          </div>
-        </div>
-
-        %if course_creator_status == "granted":
-        <div class="notice-item has-actions">
-          <div class="msg">
-            <h3 class="title">${_('Create Your First Course')}</h3>
-            <div class="copy">
-              <p>${_('Your new course is just a click away!')}</p>
-            </div>
-          </div>
-
-          <ul class="list-actions">
-            <li class="action-item">
-              <a href="#" class="action-primary action-create action-create-course new-course-button"><span class="icon fa fa-plus icon-inline" aria-hidden="true"></span> ${_('Create Your First Course')}</a>
-            </li>
-          </ul>
-        </div>
-        % endif
-
-      </div>
-      % endif
-
 
       %if course_creator_status == "unrequested":
       <div class="wrapper wrapper-creationrights">
@@ -447,6 +376,62 @@ from openedx.core.djangolib.markup import HTML, Text
         </div>
       </div>
       % endif
+
+      %if len(libraries) > 0:
+      <div class="libraries libraries-tab active">
+        <ul class="list-courses">
+          %for library_info in sorted(libraries, key=lambda s: s['display_name'].lower() if s['display_name'] is not None else ''):
+          <li class="course-item">
+            <a class="library-link" href="${library_info['url']}">
+              <h3 class="course-title">${library_info['display_name']}</h3>
+
+              <div class="course-metadata">
+                <span class="course-org metadata-item">
+                  <span class="label">${_("Organization:")}</span> <span class="value">${library_info['org']}</span>
+                </span>
+                <span class="course-num metadata-item">
+                  <span class="label">${_("Course Number:")}</span>
+                  <span class="value">${library_info['number']}</span>
+                </span>
+                % if not library_info["can_edit"]:
+                  <span class="extra-metadata">${_("(Read-only)")}</span>
+                % endif
+              </div>
+            </a>
+          </li>
+          %endfor
+        </ul>
+      </div>
+
+      %else:
+      <div class="notice notice-incontext notice-instruction notice-instruction-nocourses list-notices libraries-tab">
+        <div class="notice-item">
+          <div class="msg">
+              <h3 class="title">${_("Were you expecting to see a particular library here?")}</h3>
+              <div class="copy">
+                  <p>${_('The library creator must give you access to the library. Contact the library creator or administrator for the library you are helping to author.')}</p>
+              </div>
+          </div>
+        </div>
+        % if show_new_library_button:
+        <div class="notice-item has-actions">
+          <div class="msg">
+              <h3 class="title">${_('Create Your First Library')}</h3>
+              <div class="copy">
+                  <p>${_('Libraries hold a pool of components that can be re-used across multiple courses. Create your first library with the click of a button!')}</p>
+              </div>
+          </div>
+
+        <ul class="list-actions">
+          <li class="action-item">
+              <a href="#" class="action-primary action-create new-button action-create-library new-library-button"><span class="icon fa fa-plus icon-inline" aria-hidden="true"></span> ${_('Create Your First Library')}</a>
+          </li>
+        </ul>
+        </div>
+        % endif
+      </div>
+      %endif
+
     </article>
     <aside class="content-supplementary" role="complementary">
       <div class="bit">
