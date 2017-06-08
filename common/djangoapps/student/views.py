@@ -2459,7 +2459,7 @@ def password_reset_confirm_wrapper(request, uidb36=None, token=None):
             # policy. Use the existing Django template to communicate that
             # back to the user.
             context = {
-                'validlink': False,
+                'validlink': True,
                 'form': None,
                 'title': _('Password reset unsuccessful'),
                 'err_msg': password_err_msg,
