@@ -2,7 +2,7 @@
 <%page expression_filter="h"/>
 <%!
 from django.utils.translation import ungettext, ugettext as _
-from openedx.core.djangolib.markup import HTML
+from openedx.core.djangolib.markup import HTML, Text
 %>
 
 <%! from xmodule.util.date_utils import get_time_display %>
@@ -29,10 +29,12 @@ from openedx.core.djangolib.markup import HTML
         </b>
       </p>
     </div>
-    <div class="problem-timer" data-start="${ start_time }" data-end="${ end_time_to_display }" data-total-seconds-left="${ total_seconds_left }"
+    <div class="problem-timer" data-start="${ start_time }" data-end="${ end_time_to_display }"
+        data-total-seconds-left="${ total_seconds_left }"
         data-seconds-before-warning="${ seconds_before_warning }">
-        ${_("You have {minutes_left} minutes left to complete these questions.").format(
-            minutes_left='<span class="minutes-left"></span>')}
+            ${Text(_('You have {minutes_left} minutes left to complete these questions.')).format(
+                minutes_left=HTML('<span class="minutes-left"></span>'),
+            )}
     </div>
   % elif exceeded_time_limit:
     <div class="time_limit">

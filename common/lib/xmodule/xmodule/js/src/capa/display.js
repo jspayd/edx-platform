@@ -65,6 +65,9 @@
             this.save = function() {
                 return Problem.prototype.save.apply(that, arguments);
             };
+            this.start = function() {
+                return Problem.prototype.start.apply(that, arguments);
+            };
             this.gentle_alert = function(msg) { // eslint-disable-line no-unused-vars
                 return Problem.prototype.gentle_alert.apply(that, arguments);
             };
@@ -180,6 +183,8 @@
             this.saveButton.click(this.save);
             this.gentleAlertNotification = this.$('.notification-gentle-alert');
             this.submitNotification = this.$('.notification-submit');
+            this.startButton = this.$('.action .start');
+            this.startButton.click(this.start);
 
             // Accessibility helper for sighted keyboard users to show <clarification> tooltips on focus:
             this.$('.clarification').focus(function(ev) {
@@ -359,6 +364,7 @@
                     that.bind();
                     that.queueing(focusCallback);
                     that.renderProgressState();
+                    that.maybeSetupTimer();
                     return typeof focusCallback === 'function' ? focusCallback() : void 0;
                 });
             } else {
@@ -368,10 +374,125 @@
                         that.setupInputTypes();
                         that.bind();
                         that.queueing();
+                        if (response.progress_status !== 'done') {
+                            that.maybeSetupTimer();
+                        }
                         return that.forceUpdate(response);
                     });
                 });
             }
+        };
+
+        Problem.prototype.getSecondsLeft = function() {
+            var that = this;
+            // Returns:
+            // a nonnegative integer representing seconds left on a timed exam.
+            // -1 on error
+            if (that.startTime == null || that.totalSeconds == null) {
+                return -1;
+            } else {
+                return Math.floor(Math.max(that.totalSeconds - ((new Date() - that.startTime) / 1000), 0));
+            }
+        };
+
+        Problem.prototype.maybeSetupTimer = function() {
+            var that = this;
+            var syncInterval = 1000;
+
+            if (that.el.find('.problem-timer').length) {
+                that.timer = that.el.find('.problem-timer');
+                that.timeDisplay = that.el.find('.minutes-left');
+                that.startTime = new Date();
+                that.totalSeconds = parseInt(that.timer.data('total-seconds-left'), 10);
+                that.secondsBeforeWarning = parseInt(that.timer.data('seconds-before-warning'), 10);
+                that.submittedBeforeTimeExpired = false;
+
+                // The timer is initially hidden by CSS
+                that.timer.show();
+
+                if (that.timerId) {
+                    // Clear old timers, eg. if we press the submit button
+                    clearInterval(that.timerId);
+                }
+
+                // Sync every syncInterval
+                that.timerId = setInterval(that.syncTimer, syncInterval, that);
+
+                // Initialize and show timer
+                that.syncTimer(that);
+            }
+        };
+
+        Problem.prototype.syncTimer = function(problem) {
+            var that = problem || this;
+            that.secondsLeft = that.getSecondsLeft;
+
+            if (that.secondsLeft === -1) {
+                // On timer error, avoid showing the timer
+                that.removeTimer();
+            } else {
+                if (that.secondsLeft <= that.secondsBeforeWarning) {
+                    // Update timer state to warning
+                    that.showTimerWarning();
+                }
+
+                if (that.submittedBeforeTimeExpired) {
+                    // Indicate that the submission went through
+                    that.timer.removeClass('danger').text(gettext('Submitted'));
+                }
+
+                if (that.secondsLeft <= 0) {
+                    // Indicate that the student failed to submit on time
+                    if (!that.submittedBeforeTimeExpired) {
+                        that.timer.addClass('danger').text(gettext('Timer has expired'));
+                        // If our warning procedure is triggered,
+                        // a cloned, second timer is inserted at the bottom of the problem.
+                        // When the problem has expired, remove it.
+                        that.timer.slice(1).remove();
+                    }
+                    clearInterval(that.timerId);
+                } else {
+                    // Decrement the timer counter normally
+                    that.timeDisplay.text(that.getDisplayText());
+                }
+            }
+        };
+
+        Problem.prototype.removeTimer = function() {
+            this.$('.problem-timer').remove();
+        };
+
+        Problem.prototype.showTimerWarning = function() {
+            // if it's time to show a warning, show it both at the top of the problem and at the bottom.
+            // This is in case the user doesn't remember from a long problem that the problem is timed.
+            if (this.timer.length < 2) {
+                var $clone = this.el.find('.problem-timer').clone();
+                this.el.find('.problem').after($clone.get(0));
+
+                // Re-find cached jQuery objects
+                this.timer = this.el.find('.problem-timer');
+                this.timeDisplay = this.el.find('.minutes-left');
+                return this.timer.addClass('danger');
+            }
+        };
+
+        Problem.prototype.getDisplayText = function() {
+            var min, sec, secLeft;
+            secLeft = this.getSecondsLeft();
+            min = Math.floor(secLeft / 60);
+            sec = secLeft % 60;
+            if (sec < 10) {
+                sec = "0" + sec;
+            }
+            return min + ":" + sec;
+        };
+
+        Problem.prototype.start = function() {
+            var that = this;
+            Logger.log('problem_start', { id: that.id });
+            return $.postWithPrefix(that.url + "/problem_start", { id: that.id }, function(response) {
+                return that.render(response.contents);
+            });
         };
 
         Problem.prototype.setupInputTypes = function() {
@@ -583,6 +704,10 @@
                         default:
                             that.gentle_alert(response.success);
                         }
+                        if (that.getSecondsLeft() >= 0) {
+                            // if the student successfully submitted before time expired, remove the timer
+                            that.removeTimer();
+                        }
                         return Logger.log('problem_graded', [that.answers, response.contents], that.id);
                     }
                 };
@@ -611,6 +736,10 @@
                 default:
                     that.saveNotification.hide();
                     that.gentle_alert(response.success);
+                }
+                if (that.getSecondsLeft() >= 0) {
+                    // Remove timer on successful student submission
+                    that.removeTimer();
                 }
                 return Logger.log('problem_graded', [that.answers, response.contents], that.id);
             });
