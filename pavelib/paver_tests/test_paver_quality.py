@@ -201,7 +201,7 @@ class TestPaverRunQuality(unittest.TestCase):
         # Test that pep8, pylint, and jshint were called by counting the calls to
         # _get_pep8_violations (for pep8) and sh (for diff-quality pylint & jshint)
         self.assertEqual(_mock_pep8_violations.call_count, 1)
-        self.assertEqual(self._mock_paver_sh.call_count, 2)
+        self.assertEqual(self._mock_paver_sh.call_count, 1)
 
     @patch('__builtin__.open', mock_open())
     def test_failure_on_diffquality_pylint(self):
@@ -221,26 +221,7 @@ class TestPaverRunQuality(unittest.TestCase):
         self.assertEqual(_mock_pep8_violations.call_count, 1)
         # And assert that sh was called twice (for the calls to pylint & jshint). This means that even in
         # the event of a diff-quality pylint failure, jshint is still called.
-        self.assertEqual(self._mock_paver_sh.call_count, 2)
-
-    @patch('__builtin__.open', mock_open())
-    def test_failure_on_diffquality_jshint(self):
-        """
-        If diff-quality fails on jshint, the paver task should also fail
-        """
-
-        # Underlying sh call must fail when it is running the jshint diff-quality task
-        self._mock_paver_sh.side_effect = CustomShMock().fail_on_jshint
-        _mock_pep8_violations = MagicMock(return_value=(0, []))
-        with patch('pavelib.quality._get_pep8_violations', _mock_pep8_violations):
-            with self.assertRaises(SystemExit):
-                pavelib.quality.run_quality("")
-                self.assertRaises(BuildFailure)
-        # Test that both pep8 and pylint were called by counting the calls
-        # Assert that _get_pep8_violations (which calls "pep8") is called once
-        self.assertEqual(_mock_pep8_violations.call_count, 1)
-        # And assert that sh was called twice (for the calls to pep8 and pylint)
-        self.assertEqual(self._mock_paver_sh.call_count, 2)
+        self.assertEqual(self._mock_paver_sh.call_count, 1)
 
     @patch('__builtin__.open', mock_open())
     def test_other_exception(self):
@@ -264,7 +245,7 @@ class TestPaverRunQuality(unittest.TestCase):
         # Assert that _get_pep8_violations (which calls "pep8") is called once
         self.assertEqual(_mock_pep8_violations.call_count, 1)
         # And assert that sh was called twice (for the call to "pylint" & "jshint")
-        self.assertEqual(self._mock_paver_sh.call_count, 2)
+        self.assertEqual(self._mock_paver_sh.call_count, 1)
 
 
 class CustomShMock(object):

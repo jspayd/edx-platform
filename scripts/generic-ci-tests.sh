@@ -70,8 +70,6 @@ case "$TEST_SUITE" in
         paver run_pylint -l $PYLINT_THRESHOLD > pylint.log || { cat pylint.log; EXIT=1; }
 
         mkdir -p reports
-        echo "Finding jshint violations and storing report..."
-        paver run_jshint -l $JSHINT_THRESHOLD > jshint.log || { cat jshint.log; EXIT=1; }
         echo "Running code complexity report (python)."
         paver run_complexity > reports/code_complexity.log || echo "Unable to calculate code complexity. Ignoring error."
         # Run quality task. Pass in the 'fail-under' percentage to diff-quality
