@@ -459,17 +459,6 @@ def run_quality(options):
     ):
         diff_quality_percentage_pass = False
 
-    # run diff-quality for jshint.
-    if not run_diff_quality(
-            violations_type="jshint",
-            prefix=pythonpath_prefix,
-            reports=jshint_reports,
-            percentage_string=percentage_string,
-            branch_string=compare_branch_string,
-            dquality_dir=dquality_dir
-    ):
-        diff_quality_percentage_pass = False
-
     # If one of the quality runs fails, then paver exits with an error when it is finished
     if not diff_quality_percentage_pass:
         raise BuildFailure("Diff-quality failure(s).")

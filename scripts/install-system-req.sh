@@ -31,7 +31,7 @@ case `uname -s` in
         distro=`lsb_release -cs`
         case $distro in
             #Tries to install the same
-            squeeze|wheezy|jessie|maya|lisa|olivia|nadia|natty|oneiric|precise|quantal|raring)
+            squeeze|wheezy|jessie|maya|lisa|olivia|nadia|natty|oneiric|precise|quantal|raring|trusty)
                 output "Installing Debian family requirements"
 
                 # add repositories
